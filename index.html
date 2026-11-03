@@ -383,7 +383,7 @@ main#demo-view {
   line-height: 1.55;
   transition: border-color 0.4s ease;
 }
-.jl { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; padding: 4px 8px; border-radius: 6px; transition: background-color 0.5s ease; }
+.jl { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; padding: 4px 8px; border-radius: 6px; transition: background-color 0.35s ease; }
 /* 이번 슬라이드에서 새로 채워진 칸: 노란 바탕이 번지고 값이 스르륵 나타남 (.enter = 나타나기 직전) */
 .jl.new { background: #fff7e6; }
 .jl.enter { background: transparent; }
@@ -399,7 +399,7 @@ main#demo-view {
 .demo-llm.sent .demo-sent { visibility: visible; opacity: 1; }
 /* 오른쪽 아래 : LLM에 넣지 않고 화면에 바로 붙이는 교과서 쪽 */
 .demo-direct { display: flex; flex-wrap: wrap; gap: 8px; min-height: 46px; padding: 10px 12px; border: 1px dashed #d4d4d4; border-radius: 10px; }
-.demo-page { padding: 3px 10px; border: 1px solid #d4d4d8; border-radius: 6px; background: #fff; color: #333; font-size: 13px; font-weight: 600; transition: opacity 0.45s ease, transform 0.45s ease, background-color 0.5s ease; }
+.demo-page { padding: 3px 10px; border: 1px solid #d4d4d8; border-radius: 6px; background: #fff; color: #333; font-size: 13px; font-weight: 600; transition: opacity 0.45s ease, transform 0.45s ease, background-color 0.35s ease; }
 /* 이번 슬라이드에서 새로 붙은 교과서 쪽 (LLM 입력의 .jl.new와 같은 바탕, 같은 방식으로 나타남) */
 .demo-page.new { background: #fff7e6; }
 .demo-page.enter { opacity: 0; transform: translateY(4px); background: #fff; }
@@ -1155,32 +1155,34 @@ main#demo-view {
   }
 
   // 슬라이드 i에서 그래프와 LLM 입력 상자 모양
-  //   anim(넘겨 왔을 때): 그래프 색이 먼저 서서히 바뀌고(0.55초), 그동안 오른쪽 상자는 그대로 있다가
-  //   다 바뀐 뒤(after) 한꺼번에 바뀐다 — 새 칸 채움 · 지난 칸 노란색 거둠 · 교과서 쪽 · LLM으로 보냄
+  //   anim(넘겨 왔을 때) 순서: ① 지난 슬라이드의 노란 바탕이 지워짐(0.35초)
+  //                            ② 그래프 색이 서서히 바뀜(0.55초)
+  //                            ③ 새로 채워지는 칸·교과서 쪽이 노란 바탕으로 한꺼번에 나타남 (+ LLM으로 보냄)
+  //   지울 노란 바탕이 없으면 ①을 건너뛰고 바로 ②부터.
   function applySearch(i, anim) {
     const tween = anim && i > AT.search;
+    const fillAt = FILL_AT();
+    const atOf = (r) => fillAt[r.from] ?? AT.search;
+    const hadOld = tween && (LLM.some((r) => atOf(r) === i - 1) || i - 1 === AT.g_pages);
+    const graphAt = hadOld ? 350 : 0; // ② 그래프가 바뀌기 시작하는 때(ms)
+    const after = tween ? graphAt + 650 : 250; // ③ 새 노란 바탕이 나타나는 때(ms)
     if (tween) {
       paintGraph(i - 1); // 이전 슬라이드 모양에서 시작
-      tweenGraph(i - 1, i);
+      later(() => tweenGraph(i - 1, i), graphAt);
     } else {
       paintGraph(i);
     }
-    const after = tween ? 650 : 250; // 오른쪽 상자가 바뀌는 때(ms): 그래프가 바뀐 뒤
-    const fillAt = FILL_AT();
     LLM.forEach((r, idx) => {
-      const at = fillAt[r.from] ?? AT.search;
+      const at = atOf(r);
       if (anim && i === at) {
-        // 이번에 채울 칸: 그때까지 빈칸(▢) 그대로 → 한꺼번에 채우며 노란 바탕
+        // 이번에 채울 칸: 그때까지 빈칸(▢) 그대로 → ③에서 채우며 노란 바탕
         setLine(idx, false, false);
         later(() => {
           setLine(idx, true, true);
           reveal(lineEl(idx));
         }, after);
-      } else if (anim && at === i - 1) {
-        // 지난 슬라이드에 채운 칸: 노란 바탕을 그때 함께 거둔다
-        setLine(idx, true, true);
-        later(() => setLine(idx, true, false), after);
       } else {
+        // 그 밖의 칸 (지난 슬라이드에 채운 칸은 여기서 노란 바탕이 빠지며 ①처럼 흐려진다)
         setLine(idx, i >= at, i === at);
       }
     });
@@ -1200,9 +1202,8 @@ main#demo-view {
         setPages(true, true);
         chips().forEach(reveal);
       }, after);
-    } else if (anim && i - 1 === AT.g_pages) {
-      setPages(true, true);
-      later(() => chips().forEach((c) => c.classList.remove("new")), after);
+    } else if (anim && i - 1 === AT.g_pages && chips().length) {
+      chips().forEach((c) => c.classList.remove("new")); // ① 지난 슬라이드의 노란 바탕 지움
     } else {
       setPages(i >= AT.g_pages, i === AT.g_pages);
     }
@@ -1261,9 +1262,9 @@ main#demo-view {
     judge: [["#demo-judge", 200]],
     search: [["top", 0], ["#demo-llm", 700]],
     g_options: [["#demo-graph", 0]],
-    g_card: [["#demo-graph", 0], ["#demo-llm", 700]],
-    g_concept: [["#demo-graph", 0], ["#demo-llm", 700]],
-    g_pages: [["#demo-graph", 0], ["#demo-direct", 700]],
+    g_card: [["#demo-graph", 0], ["#demo-llm", 900]],
+    g_concept: [["#demo-graph", 0], ["#demo-llm", 900]],
+    g_pages: [["#demo-graph", 0], ["#demo-direct", 900]],
     send: [["#demo-llm", 0]],
     feedback: [["#demo-fb .fb-panel", 0, "start"]],
   };
