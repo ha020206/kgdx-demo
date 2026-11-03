@@ -33,6 +33,12 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
+      # data.js를 고쳐 push했을 때 브라우저가 옛 data.js(캐시)를 쓰지 않도록,
+      # 배포본의 index.html에서만 data.js 주소 뒤에 커밋 번호를 붙인다(저장소 파일은 바뀌지 않는다).
+      - name: Add version to data.js link
+        run: |
+          sed -i "s#<script src=\"data.js\"></script>#<script src=\"data.js?v=${GITHUB_SHA::7}\"></script>#" index.html
+          grep -q "data.js?v=${GITHUB_SHA::7}" index.html || { echo "index.html에서 <script src=\"data.js\"></script> 줄을 찾지 못했습니다"; exit 1; }
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

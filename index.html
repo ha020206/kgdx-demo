@@ -1,101 +1,146 @@
 <!DOCTYPE html>
-<!-- 판정 시연(I-LDEL 오개념 T14 → 오개념). tools/build_demo_html.py로 만든 파일이다. 직접 고치지 말고 스크립트를 다시 돌린다. -->
+<!--
+  판정 시연 화면 : 오개념 사례 하나를 한 슬라이드씩(1~15) 보여 준다.
+  - 화면에 보이는 글자와 데이터는 모두 data.js에 있다. 내용을 바꿀 때는 data.js만 고친다.
+  - 이 파일은 화면 모양(CSS)과 동작(JS)만 담는다.
+  - 넘기기: Enter · → · PageDown · 화면 클릭(휴대폰은 탭) / 이전: Backspace · ← · PageUp · 이전 버튼
+  - 실행 방법, 슬라이드 표, 배포는 README.md 참고.
+  - 주의: 아래 <script src="data.js"> 줄은 배포(.github/workflows/static.yml)가 찾아서 고치는 줄이라 모양을 바꾸지 않는다.
+-->
 <html lang="ko">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>판정 시연 · I-LDEL 오개념</title>
+  <title>판정 시연</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <style>
+/* =========================================================================
+ * 0. 색 (여기 값만 바꾸면 화면 전체 색이 바뀐다)
+ * ========================================================================= */
 :root {
   --ink: #111;
-  --muted: #8a8a8a;
   --line: #ececec;
-  --accent: #2f80ed;
-  --pick: #fff6e0;
+  /* 학생이 고르는 표시(선지·확신도) : 무채색 */
+  --pick: #111;
+  --pick-bg: #f3f4f6;
+  /* 오답·오개념 : 가장 강한 강조 */
+  --wrong: #dc2626;
+  --wrong-bg: #fdecec;
+  --wrong-ink: #b91c1c;
+  /* 정답 : 약한 강조(테두리·글자만) */
+  --right: #15803d;
+  --right-line: #86c79e;
+  --right-bg: #f0fdf4;
+  /* 그래프에서 지금 따라가는 길 */
+  --trail: #f59e0b;
+  /* 엔트리 블록 색 */
   --hat: #7ac143;
   --var: #d26ad2;
+  --decl: #e67e22;
   --ctrl: #f0a033;
   --fn: #6b5ce7;
-  --ok: #15803d;
-  --ld: #b45309;
-  --mc: #b91c1c;
-  --pd: #1d4ed8;
-  --hold: #4b5563;
 }
+
+/* =========================================================================
+ * 1. 페이지 틀 : 위 제목 / 가운데 무대 / 맨 아래 회색 설명 칸
+ *    무대가 남는 높이를 모두 차지해서 설명 칸이 화면 아래에 붙는다.
+ *    내용이 화면보다 길면(휴대폰 등) 설명 칸이 화면 아래에 고정된다.
+ * ========================================================================= */
 * { box-sizing: border-box; }
-html, body { background: #fff; }
+html {
+  background: #fff;
+  touch-action: manipulation; /* 휴대폰에서 두 번 탭할 때 확대되지 않게 */
+  -webkit-tap-highlight-color: transparent;
+}
 body {
   margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
   color: var(--ink);
   font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
   font-size: 16px;
   line-height: 1.4;
   letter-spacing: -0.02em;
+  -webkit-user-select: none; /* 클릭으로 넘길 때 글자가 선택되지 않게 */
+  user-select: none;
 }
-.top {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  align-items: center;
-  padding: 12px 24px 0;
-}
-body.on-quiz h1 { display: none; }
-body.on-quiz .top { padding-bottom: 0; }
-.top-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.top { padding: 12px 24px 0; }
 h1 { margin: 4px 0 0; font-size: 20px; font-weight: 700; }
-main { max-width: 980px; margin: 0 auto; padding: 4px 24px 28px; }
-.note { color: #777; font-size: 14px; }
-.sessions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 16px; }
-@media (max-width: 700px) { .sessions { grid-template-columns: 1fr; } }
-.session-btn {
-  text-align: left; width: 100%; background: #fff; border: 1px solid var(--line);
-  border-radius: 12px; padding: 16px; cursor: pointer; font: inherit;
+main#demo-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 8px 24px 0;
 }
-.session-btn:hover { border-color: var(--accent); }
-.session-btn strong { display: block; font-size: 17px; }
-.session-btn span { display: block; color: var(--muted); font-size: 13px; margin-top: 4px; }
-.bar {
-  display: flex; justify-content: space-between; align-items: baseline;
-  color: #9a9a9a; font-size: 13px; margin: 0 0 10px;
-}
+.demo-stage { flex: 1; min-height: 520px; overflow-x: clip; }
+.demo-stage [hidden] { display: none !important; }
+/* 슬라이드를 건너뛸 때(Backspace 등) 움직임 없이 바로 바꾸기 위한 클래스 */
+.demo-stage.noanim,
+.demo-stage.noanim * { transition: none !important; }
 
-#stem {
-  margin: 0 0 14px;
-  font-size: 20px;
+/* 맨 아래 회색 설명 칸 */
+.demo-explain {
+  position: sticky;
+  bottom: 8px;
+  z-index: 20;
+  margin: 36px 0 8px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f7f8fa;
+}
+.demo-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 4px; }
+.demo-progress { margin: 0; color: #999; font-size: 12px; font-weight: 700; }
+.demo-text { margin: 0; color: #222; font-size: 16px; line-height: 1.55; }
+.demo-text b { font-weight: 800; }
+.demo-error { color: var(--wrong-ink); font-weight: 700; }
+.demo-keys { margin: 8px 0 0; color: #aaa; font-size: 12px; }
+.hint-tap { display: none; }
+/* 이전/다음 버튼 : 휴대폰·좁은 화면에서만 보인다 */
+.demo-nav { display: none; gap: 6px; }
+.demo-nav button {
+  padding: 6px 16px;
+  border: 1px solid #d4d4d8;
+  border-radius: 999px;
+  background: #fff;
+  color: #333;
+  font: inherit;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.35;
+  cursor: pointer;
+}
+.demo-nav button.next { border-color: var(--ink); background: var(--ink); color: #fff; }
+.demo-nav button:disabled { opacity: 0.3; cursor: default; }
+@media (pointer: coarse), (max-width: 900px) {
+  .demo-nav { display: flex; }
+  .hint-keys { display: none; }
+  .hint-tap { display: inline; }
 }
 
-.quiz-grid {
-  display: grid;
-  grid-template-columns: minmax(240px, 1fr) minmax(280px, 1.1fr);
-  gap: 12px 28px;
-  align-items: start;
-}
-.quiz-grid.single { grid-template-columns: 1fr; }
-@media (max-width: 800px) { .quiz-grid { grid-template-columns: 1fr; gap: 12px; } }
-.ask-col { min-width: 0; }
-
+/* =========================================================================
+ * 2. 엔트리 블록 코드 (문제 안 코드)
+ * ========================================================================= */
 .blocks { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
 .blk {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  padding: 5px 10px;
+  border-radius: 16px;
   color: #fff;
   font-size: 13px;
   font-weight: 600;
-  padding: 5px 10px;
-  border-radius: 16px;
-  white-space: nowrap;
   line-height: 1.2;
+  white-space: nowrap;
 }
-.blk.hat { background: var(--hat); padding-left: 10px; }
+.blk.hat { background: var(--hat); }
 .blk.hat::before {
   content: "";
-  width: 0;
-  height: 0;
   border-style: solid;
   border-width: 5px 0 5px 8px;
   border-color: transparent transparent transparent #fff;
@@ -103,607 +148,32 @@ main { max-width: 980px; margin: 0 auto; padding: 4px 24px 28px; }
 .blk.var { background: var(--var); }
 .blk.ctrl { background: var(--ctrl); }
 .blk.fn { background: var(--fn); }
-.blk.decl { background: #e67e22; }
+.blk.decl { background: var(--decl); }
 .blk.cmd { background: #888; }
+/* 블록 안 칩: (값) = 흰 칩, [이름] = 드롭다운 칩(▾), (… 칩 …) = 값 블록 */
 .chip {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  border-radius: 7px;
   background: #fff;
   color: #333;
-  border-radius: 7px;
-  padding: 1px 6px;
-  font-weight: 600;
   font-size: 12px;
+  font-weight: 600;
 }
 .chip.dd::after {
   content: "";
-  margin-left: 4px;
+  margin-left: 2px;
   border: 3px solid transparent;
   border-top-color: #777;
   border-bottom-width: 0;
 }
+.chip.rep { padding: 2px 6px; border-radius: 10px; background: rgba(0, 0, 0, 0.16); color: #fff; }
 
-h2 { margin: 0 0 10px; font-size: 18px; font-weight: 700; }
-fieldset { border: 0; margin: 0; padding: 0; }
-.opts { display: flex; flex-direction: column; gap: 4px; }
-label.opt {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-  padding: 6px 10px;
-  border: 1px solid #f0f0f0;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 15px;
-  background: #fff;
-  min-height: 36px;
-}
-label.opt:hover { background: #fafafa; }
-label.opt:has(input:checked) {
-  background: var(--pick);
-  border-color: #f3d48a;
-}
-div.opt {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-  padding: 6px 10px;
-  border: 1px solid #f0f0f0;
-  border-radius: 10px;
-  font-size: 15px;
-  background: #fff;
-  min-height: 36px;
-}
-div.opt.code { align-items: flex-start; padding-top: 6px; padding-bottom: 6px; }
-div.opt.right { background: #e8f7ee; border-color: #7dca98; }
-div.opt.wrong { background: #fde8e8; border-color: #e38a8a; }
-label.opt.code, div.opt.code { align-items: flex-start; padding-top: 6px; padding-bottom: 6px; }
-label.opt.code .blocks, div.opt.code .blocks { gap: 3px; }
-label.opt.code .blk, div.opt.code .blk { font-size: 12px; padding: 3px 8px; }
-label.opt input { accent-color: var(--accent); width: 14px; height: 14px; margin: 0; flex: 0 0 auto; }
-.opt-text { flex: 1; min-width: 0; }
-.opt-num { font-weight: 700; flex: 0 0 auto; }
-.opt-blocks { flex: 1; min-width: 0; }
-.dev-tag {
-  margin-left: auto;
-  flex: 0 0 auto;
-  font-size: 11px;
-  font-weight: 600;
-  color: #8a8a8a;
-  border: 1px solid #e5e5e5;
-  border-radius: 999px;
-  padding: 2px 8px;
-  white-space: nowrap;
-}
-.dev-tag.C { color: #2563eb; border-color: #bfdbfe; }
-.dev-tag.T, .dev-tag.O { color: #b45309; border-color: #f3d48a; background: #fff8e8; }
-.dev-tag.D, .dev-tag.X { color: #9aa; }
-body:not(.dev) .dev-tag { display: none; }
-body.on-play .dev-tag { display: inline-block; }
-
-.conf-line {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 12px 0 0;
-  color: #555;
-  font-size: 14px;
-}
-.conf-line > span { font-weight: 700; }
-.conf { display: flex; flex-wrap: wrap; gap: 4px 2px; }
-label.conf-opt {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 6px;
-  border: 0;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  background: transparent;
-  color: #555;
-}
-label.conf-opt + label.conf-opt::before {
-  content: "·";
-  color: #bbb;
-  margin-right: 4px;
-}
-label.conf-opt:has(input:checked) { color: var(--ink); font-weight: 700; }
-label.conf-opt input { accent-color: var(--accent); }
-.play-quiz .conf-line {
-  margin-top: 14px;
-  padding: 8px 10px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: #fff;
-}
-.play-quiz label.conf-opt.picked,
-.play-quiz label.conf-opt:has(input:checked) {
-  background: var(--pick);
-  box-shadow: 0 0 0 1px var(--accent);
-}
-#other-wrap { margin-top: 6px; }
-#other, #reason {
-  width: 100%;
-  border: 0;
-  border-bottom: 1px solid #ddd;
-  padding: 6px 0;
-  font: inherit;
-  outline: none;
-}
-#reason-wrap { margin-top: 8px; }
-#other:focus, #reason:focus { border-bottom-color: var(--accent); }
-.privacy { margin: 4px 0 0; color: #aaa; font-size: 12px; }
-.value-table { margin-top: 8px; }
-.value-table table { border-collapse: collapse; width: 100%; font-size: 14px; }
-.value-table th, .value-table td { border: 1px solid var(--line); padding: 6px 8px; }
-.nav { display: flex; justify-content: space-between; margin: 18px 0 0; }
-button { font: inherit; border-radius: 10px; padding: 8px 16px; cursor: pointer; }
-.primary { background: var(--accent); color: #fff; border: 0; }
-.ghost { background: #fff; border: 1px solid #ddd; color: #444; }
-button:disabled { opacity: 0.35; cursor: not-allowed; }
-.dev-toggle { color: #999; font-size: 12px; }
-body:not(.dev) .llm-dot,
-body:not(.dev) #open-graph,
-body:not(.dev) #open-cases,
-body:not(.dev) #open-demo,
-body:not(.dev) .graph-ev,
-body:not(.dev) .hold-why,
-body:not(.dev) .debug { display: none !important; }
-.llm-dot { font-size: 12px; color: #999; }
-.llm-dot.on { color: var(--ok); }
-.llm-dot.off { color: #b45309; }
-.wait-msg { font-size: 22px; font-weight: 700; margin: 64px 0 8px; }
-
-.rev {
-  padding: 16px 0 18px;
-  border-bottom: 1px solid #f0f0f0;
-}
-.rev:last-child { border-bottom: 0; }
-.rev .no { margin: 0 0 4px; color: #999; font-size: 12px; font-weight: 700; }
-.rev h3 { margin: 0 0 8px; font-size: 17px; font-weight: 700; }
-.rev dl { display: grid; grid-template-columns: 64px 1fr; gap: 4px 10px; margin: 0 0 10px; }
-.rev dt { color: #888; font-size: 13px; }
-.rev dd { margin: 0; font-size: 15px; }
-.rev .ok { color: var(--ok); font-weight: 600; }
-.rev .bad { color: var(--mc); font-weight: 600; }
-.rev .explain {
-  margin: 10px 0 0;
-  padding: 10px 12px;
-  background: #f7f8fa;
-  border-radius: 10px;
-  font-size: 15px;
-  line-height: 1.45;
-}
-.rev .server-line {
-  margin: 6px 0 0;
-  color: #555;
-  font-size: 13px;
-  font-weight: 600;
-}
-.rev .review-conf { margin: 8px 0 0; }
-.rev .review-conf label.conf-opt { cursor: default; }
-.rev .hold-why {
-  margin: 8px 0 0;
-  padding: 8px 10px;
-  border-left: 3px solid #f59e0b;
-  background: #fffbeb;
-  color: #444;
-  font-size: 13px;
-  line-height: 1.45;
-}
-.rev .hold-why b { margin-right: 6px; color: #b45309; }
-.rev .guide {
-  margin: 8px 0 0;
-  padding: 8px 12px;
-  border-left: 3px solid var(--ok);
-  background: #fbfcfd;
-  border-radius: 6px;
-}
-.rev .guide .g-h { margin: 0; color: #333; font-size: 13px; font-weight: 700; }
-.rev .guide .g-h small { color: #888; font-weight: 400; }
-.rev .guide .explain { margin: 6px 0 4px; background: transparent; padding: 0; }
-.rev .guide .book-meta { margin: 0; color: #666; font-size: 12px; }
-.rev .graph-ev {
-  margin: 8px 0 0;
-  padding: 8px 12px;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  color: #555;
-  font-size: 13px;
-  line-height: 1.45;
-}
-.rev .graph-ev .g-h {
-  margin: 0 0 4px;
-  color: #333;
-  font-size: 12px;
-  font-weight: 700;
-}
-.rev .graph-ev p { margin: 0; }
-.rev .g-meta {
-  display: grid;
-  grid-template-columns: 72px 1fr;
-  gap: 4px 10px;
-  margin: 0 0 8px;
-}
-.rev .g-meta > div { display: contents; }
-.rev .g-meta dt { color: #888; font-size: 12px; }
-.rev .g-meta dd { margin: 0; font-size: 13px; }
-.rev .book {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px dashed var(--line);
-}
-.rev .book-meta { color: #555; font-size: 13px; }
-.rev .book blockquote {
-  margin: 6px 0 0;
-  padding: 0 0 0 10px;
-  border-left: 3px solid #ddd;
-  color: #444;
-  font-size: 13px;
-}
-.rev .book-foot {
-  margin: 8px 0 0;
-  color: #999;
-  font-size: 11px;
-}
-.cases-layout {
-  display: grid;
-  grid-template-columns: minmax(240px, 300px) 1fr;
-  gap: 16px;
-  align-items: start;
-}
-.case-groups {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-.case-tab {
-  padding: 6px 10px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: #fff;
-  font-size: 12px;
-  cursor: pointer;
-}
-.case-tab.on { border-color: #333; background: #f7f8fa; font-weight: 700; }
-.cases-pick {
-  max-height: 70vh;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.case-btn {
-  text-align: left;
-  padding: 8px 10px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: #fff;
-  cursor: pointer;
-}
-.case-btn.on { border-color: #333; background: #f7f8fa; }
-.case-btn strong { display: block; font-size: 13px; }
-.case-btn span { display: block; color: #777; font-size: 12px; margin-top: 2px; }
-.case-btn.bad { border-color: #c45; }
-.flow h3 { margin: 0 0 10px; font-size: 17px; }
-.flow .no { margin: 0 0 4px; color: #999; font-size: 12px; font-weight: 700; }
-.flow-tracks { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
-.flow-steps {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.flow-steps li {
-  position: relative;
-  margin: 0;
-  padding: 10px 12px 10px 28px;
-  border-left: 2px solid #eee;
-  color: #bbb;
-  opacity: 0.28;
-  transform: translateY(8px);
-  transition: opacity 0.35s ease, transform 0.35s ease, background 0.25s ease;
-}
-.flow-steps li.done,
-.flow-steps li.on {
-  opacity: 1;
-  color: var(--ink);
-  transform: none;
-}
-.flow-steps li.on {
-  background: #f7f8fa;
-  border-left-color: var(--accent);
-  border-radius: 0 10px 10px 0;
-}
-.flow-steps li::before {
-  content: "";
-  position: absolute;
-  left: -6px;
-  top: 16px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #ddd;
-}
-.flow-steps li.done::before { background: #9ca3af; }
-.flow-steps li.on::before {
-  background: var(--accent);
-  box-shadow: 0 0 0 4px rgba(47, 128, 237, 0.18);
-}
-.flow-steps li b { display: block; font-size: 13px; }
-.flow-steps li span { display: block; margin-top: 3px; font-size: 13px; color: #555; }
-.flow-steps li .more { margin: 4px 0 0; font-size: 12px; color: #777; line-height: 1.4; }
-#flow-replay { margin-top: 12px; }
-body.on-play .cases-layout { grid-template-columns: 1fr; }
-body.on-play #cases-list { display: none; }
-body.on-play main#cases-view { max-width: 1100px; }
-.play-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
-.play-bar .flow-tracks { margin: 0; flex: 1; }
-.play-now {
-  position: sticky;
-  top: 0;
-  z-index: 4;
-  margin: 0 0 8px;
-  padding: 10px 0;
-  background: #fff;
-  border-bottom: 1px solid var(--line);
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--accent);
-}
-.play-stage { min-height: 0; }
-.play-scene {
-  min-height: 78vh;
-  padding: 20px 0 64px;
-  opacity: 0.22;
-  transform: translateY(12px);
-  transition: opacity 0.45s ease, transform 0.45s ease;
-}
-.play-scene.on,
-.play-scene.done {
-  opacity: 1;
-  transform: none;
-}
-.scene-kicker {
-  margin: 0 0 12px;
-  color: #888;
-  font-size: 13px;
-  font-weight: 700;
-}
-.scene-body { margin: 0; font-size: 18px; line-height: 1.5; }
-.play-quiz h3 { margin: 0 0 10px; font-size: 20px; }
-.play-quiz .no { margin: 0 0 4px; color: #999; font-size: 12px; font-weight: 700; }
-.opt.picked {
-  box-shadow: 0 0 0 2px var(--accent);
-  background: var(--pick);
-  animation: pickpop 0.28s ease;
-}
-.conf-opt.picked {
-  color: var(--ink);
-  font-weight: 700;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-@keyframes pickpop {
-  from { transform: scale(0.98); }
-  to { transform: scale(1); }
-}
-.play-gwrap { position: relative; }
-.play-gstage {
-  position: sticky;
-  top: 52px;
-  z-index: 2;
-}
-.play-graph {
-  height: 440px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: #f8fafc;
-}
-.play-gbadge {
-  margin: 0 0 8px;
-  padding: 8px 12px;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-}
-.play-gbadge strong { display: block; font-size: 15px; }
-.play-gbadge span { display: block; margin-top: 3px; color: #555; font-size: 13px; line-height: 1.35; }
-.play-gwhy {
-  margin: 8px 0 0;
-  padding: 12px 14px;
-  background: #fff7ed;
-  border: 1px solid #fdba74;
-  border-radius: 10px;
-  color: #9a3412;
-  font-size: 15px;
-  line-height: 1.5;
-}
-.play-cap {
-  margin: 8px 0 0;
-  color: #777;
-  font-size: 13px;
-}
-.play-way { min-height: 118vh; }
-.play-gwhy { transition: opacity 0.55s ease; }
-.payload { display: grid; gap: 8px; }
-.bridge { display: grid; gap: 8px; margin: 0 0 20px; }
-.bridge-row {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 6px 10px;
-  align-items: start;
-  padding: 10px 12px;
-  border: 1px solid #fdba74;
-  border-radius: 10px;
-  background: #fff7ed;
-  opacity: 0.25;
-  transform: translateY(8px);
-  transition: 0.28s ease;
-}
-.bridge-row.on { opacity: 1; transform: none; }
-.bridge-row.off { border-color: var(--line); background: #f7f8fa; }
-.bridge-row span { font-size: 14px; font-weight: 700; }
-.bridge-row i { color: #c2410c; font-style: normal; }
-.bridge-row code { color: var(--accent); font-size: 12px; }
-.bridge-row p { grid-column: 1 / -1; margin: 0; color: #555; font-size: 13px; }
-.pk {
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  opacity: 0.2;
-  transform: translateY(8px);
-  transition: 0.28s ease;
-}
-.pk.on { opacity: 1; transform: none; background: #f7f8fa; }
-.pk.graph.on { background: #ecfdf5; border-color: #6ee7b7; }
-.pk .src-tag {
-  display: inline-block;
-  margin-bottom: 4px;
-  padding: 1px 7px;
-  border-radius: 999px;
-  background: #eee;
-  color: #555;
-  font-size: 11px;
-  font-weight: 700;
-}
-.pk.graph .src-tag { background: #d1fae5; color: #047857; }
-.pk code {
-  display: block;
-  margin-bottom: 4px;
-  color: var(--accent);
-  font-size: 13px;
-  font-weight: 700;
-}
-.pk p { margin: 0; white-space: pre-wrap; font-size: 14px; line-height: 1.45; }
-@media (max-width: 800px) {
-  .cases-layout { grid-template-columns: 1fr; }
-  .cases-pick { max-height: 28vh; }
-}
-
-.debug { margin-top: 20px; color: #888; }
-.debug pre { background: #fafafa; border: 1px solid var(--line); padding: 12px; overflow: auto; }
-
-.graph-open {
-  margin-top: 36px;
-  width: 100%;
-}
-.graph-open + .graph-open { margin-top: 10px; }
-#home-view { display: flex; flex-direction: column; }
-#home-view[hidden] { display: none; }
-body.on-graph .top { padding: 8px 16px 0; }
-body.on-graph main#graph-view {
-  max-width: none;
-  padding: 8px 12px 12px;
-}
-.graph-stage {
-  position: relative;
-  height: calc(100vh - 72px);
-  min-height: 640px;
-}
-#graph-canvas {
-  width: 100%;
-  height: 100%;
-  border: 1px solid #222;
-  border-radius: 12px;
-  background: #1b1d22;
-}
-.graph-toolbar {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  right: 10px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 8px;
-  align-items: center;
-  pointer-events: none;
-}
-.graph-toolbar > * { pointer-events: auto; }
-.graph-filters, .graph-kinds { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
-.graph-filters button {
-  border: 1px solid rgba(255,255,255,0.18);
-  background: rgba(20,22,28,0.88);
-  color: #e5e7eb;
-  border-radius: 999px;
-  padding: 3px 9px;
-  font: inherit;
-  font-size: 12px;
-  line-height: 1.2;
-  cursor: pointer;
-}
-.graph-filters button.on { border-color: #93c5fd; color: #93c5fd; font-weight: 700; }
-.graph-kinds label { font-size: 11px; color: #d4d4d8; background: rgba(20,22,28,0.88); border-radius: 999px; padding: 3px 8px; }
-#graph-search {
-  width: 140px;
-  border: 1px solid rgba(255,255,255,0.18);
-  background: rgba(20,22,28,0.88);
-  color: #f4f4f5;
-  border-radius: 999px;
-  padding: 3px 10px;
-  font: inherit;
-  font-size: 12px;
-}
-.graph-detail {
-  position: absolute;
-  left: 10px;
-  bottom: 48px;
-  width: min(320px, 40vw);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 10px;
-  padding: 10px 12px;
-  background: rgba(250,250,250,0.96);
-  font-size: 13px;
-  max-height: 36%;
-  overflow: auto;
-}
-.graph-detail[hidden] { display: none !important; }
-.graph-detail h3 { margin: 0 0 6px; font-size: 15px; }
-.graph-detail .muted, .graph-legend { color: #a1a1aa; font-size: 11px; }
-.graph-legend {
-  margin-left: auto;
-  background: rgba(20,22,28,0.88);
-  border-radius: 999px;
-  padding: 3px 10px;
-  color: #d4d4d8;
-}
-.graph-hint {
-  flex: 1 1 100%;
-  margin: 0;
-  padding: 4px 10px;
-  border-radius: 8px;
-  background: rgba(20,22,28,0.88);
-  color: #e4e4e7;
-  font-size: 12px;
-}
-.graph-detail p { margin: 0 0 8px; }
-.graph-detail .tag {
-  display: inline-block;
-  margin-right: 6px;
-  padding: 1px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-}
-.graph-detail .tag.seed { background: #dbeafe; color: #1d4ed8; }
-.graph-detail .tag.extract { background: #ffedd5; color: #c2410c; }
-.graph-detail .tag.both { background: #d1fae5; color: #047857; }
-@media (max-width: 800px) {
-  .graph-detail { position: static; width: auto; margin-top: 8px; }
-  .graph-stage { height: calc(100vh - 120px); }
-}
-
-/* ---------- 판정 시연(개발자 모드) · demo.js ---------- */
-body.on-demo main#demo-view { max-width: 1240px; }
-.demo-stage { min-height: 540px; }
-.demo-stage [hidden] { display: none !important; }
-.demo-stage.noanim,
-.demo-stage.noanim * { transition: none !important; animation: none !important; }
-
+/* =========================================================================
+ * 3. 문제 카드 (슬라이드 1~8, 15 왼쪽)
+ * ========================================================================= */
 .demo-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
 .dq {
   min-width: 0;
@@ -716,11 +186,14 @@ body.on-demo main#demo-view { max-width: 1240px; }
   transition: opacity 0.6s ease, transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 .dq.show { opacity: 1; transform: none; }
+/* 문제 1만 있을 때(슬라이드 1~3)는 가운데 */
 #demo-q0.show.center { transform: translateX(calc(50% + 14px)); }
 .dq-no { margin: 0 0 6px; color: #999; font-size: 13px; font-weight: 700; }
-.dq-mark { color: var(--mc); }
+.dq-mark { color: var(--wrong-ink); }
 .dq-stem { margin: 0 0 10px; font-size: 18px; font-weight: 700; line-height: 1.35; }
 .dq-code { margin: 0 0 12px; }
+
+/* 슬라이드 7에 문제·안 고른 선지를 접는 장치 */
 .dfold {
   display: grid;
   grid-template-rows: 1fr;
@@ -728,6 +201,8 @@ body.on-demo main#demo-view { max-width: 1240px; }
 }
 .dfold > * { min-height: 0; overflow: hidden; }
 .dq.reduced .dfold:not(.keep) { grid-template-rows: 0fr; opacity: 0; }
+
+/* --- 선지 --- */
 .dq-opts .dopt { margin-bottom: 5px; }
 .dopt {
   display: flex;
@@ -751,98 +226,167 @@ body.on-demo main#demo-view { max-width: 1240px; }
   background: #fff;
   transition: border-color 0.25s ease, background 0.25s ease;
 }
-.dopt.on,
-.dconf.on { background: var(--pick); border-color: var(--accent); animation: dpress 0.35s ease; }
-.on > .dradio { border-color: var(--accent); background: radial-gradient(circle, var(--accent) 42%, #fff 48%); }
-.dq.graded .dopt.chosen { background: #fdecec; border-color: #dc2626; box-shadow: 0 0 0 1px #dc2626; }
-.dq.graded .dopt.chosen > .dradio { border-color: #dc2626; background: radial-gradient(circle, #dc2626 42%, #fff 48%); }
-.dq.graded .dopt.correct { background: #eaf1fe; border-color: #2563eb; box-shadow: 0 0 0 1px #2563eb; }
+/* 학생이 고름 (슬라이드 2·5) : 무채색 */
+.dopt.on { border-color: var(--pick); background: var(--pick-bg); box-shadow: 0 0 0 1px var(--pick); }
+.on > .dradio { border-color: var(--pick); background: radial-gradient(circle, var(--pick) 42%, #fff 48%); }
+/* 채점 (슬라이드 3·6) : 고른 오답 = 강한 빨강 */
+.dq.graded .dopt.chosen:not(.correct) { background: var(--wrong-bg); border-color: var(--wrong); box-shadow: 0 0 0 1.5px var(--wrong); }
+.dq.graded .dopt.chosen:not(.correct) > .dradio { border-color: var(--wrong); background: radial-gradient(circle, var(--wrong) 42%, #fff 48%); }
+.dq.graded .dopt.chosen:not(.correct) .dopt-text { color: var(--wrong-ink); font-weight: 700; }
+/* 채점 : 정답 = 약한 초록(테두리·글자만) */
+.dq.graded .dopt.correct { border-color: var(--right-line); }
+.dq.graded .dopt.correct .dopt-text { color: var(--right); }
+/* (학생이 정답을 골랐을 때) */
+.dq.graded .dopt.chosen.correct { background: var(--right-bg); border-color: var(--right); box-shadow: 0 0 0 1.5px var(--right); }
+/* 선지 오른쪽 표시 : ✕ 오답 / ✓ 정답 (채점 때 나타남) */
+.dbadge {
+  flex: 0 0 auto;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity 0.4s ease 0.1s;
+}
+.dq.graded .dbadge { opacity: 1; }
+.dbadge.wrong { background: var(--wrong); color: #fff; }
+.dbadge.right { border: 1px solid var(--right-line); background: #fff; color: var(--right); }
+.dbadge.right.mine { border-color: var(--right); background: var(--right); color: #fff; }
+/* 고른 선지 아래 오개념 노드 글 (슬라이드 3·6에 펼쳐짐) */
 .dtag {
   flex-basis: 100%;
   max-height: 0;
   margin-left: 22px;
   overflow: hidden;
   opacity: 0;
-  color: #b91c1c;
+  color: var(--wrong-ink);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   transition: max-height 0.5s ease 0.15s, opacity 0.5s ease 0.15s, margin-top 0.5s ease 0.15s;
 }
+.dtag b { font-weight: 800; }
 .dq.graded .dopt.chosen .dtag { max-height: 64px; margin-top: 4px; opacity: 1; }
-.demo-fbcard .dtag { display: none; }
-.dq-conf { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; color: #555; font-size: 14px; }
-.dq-conf-h { margin-right: 4px; font-weight: 700; }
+
+/* --- 확신도 : "확신도" 제목 줄 + ○ 확실해요 · ○ 조금 확실해요 · ○ 잘 모르겠어요 --- */
+.dq-conf { margin-top: 12px; }
+.dq-conf-h { margin: 0 0 6px; font-size: 14px; font-weight: 700; }
+.dq-conf-row { display: flex; flex-wrap: wrap; align-items: center; color: #444; font-size: 14px; }
 .dconf {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   max-width: 200px;
-  padding: 4px 10px;
+  padding: 2px 4px;
   overflow: hidden;
-  border: 1px solid #eee;
-  border-radius: 999px;
   white-space: nowrap;
-  transition: max-width 0.55s ease, opacity 0.45s ease, padding 0.55s ease, border-color 0.3s ease, background 0.3s ease;
+  transition: max-width 0.55s ease, opacity 0.45s ease, padding 0.55s ease;
 }
 .dconf.on { color: var(--ink); font-weight: 700; }
-.dq.reduced .dconf:not(.chosen) { max-width: 0; padding-left: 0; padding-right: 0; border-width: 0; opacity: 0; }
-@keyframes dpress {
-  0% { transform: scale(1); }
-  40% { transform: scale(0.96); }
-  100% { transform: scale(1); }
+.dsep {
+  max-width: 30px;
+  padding: 0 8px;
+  overflow: hidden;
+  color: #bbb;
+  transition: max-width 0.55s ease, opacity 0.45s ease, padding 0.55s ease;
 }
+/* 슬라이드 7부터 고른 확신도만 남김 */
+.dq.reduced .dconf:not(.chosen),
+.dq.reduced .dsep { max-width: 0; padding-left: 0; padding-right: 0; opacity: 0; }
 
-.demo-eq { margin-top: 22px; }
-.eq-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; }
-.eq-row > * {
+/* =========================================================================
+ * 4. 판정 규칙 상자 (슬라이드 8) : 두 응답 → 규칙 체크 → 결과 (차례로 나타남)
+ * ========================================================================= */
+.demo-judge { margin-top: 24px; }
+.jrow { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 14px; }
+.ji {
   opacity: 0;
   transform: translateY(8px);
   transition: opacity 0.4s ease, transform 0.4s ease;
-  transition-delay: calc(var(--i, 0) * 0.3s);
+  transition-delay: calc(var(--i, 0) * 0.35s);
 }
-.demo-eq.on .eq-row > * { opacity: 1; transform: none; }
-.eq-chip { padding: 8px 12px; border: 1px solid #dc2626; border-radius: 10px; background: #fdecec; color: #991b1b; font-size: 14px; font-weight: 700; }
-.eq-chip code { margin-left: 4px; padding: 1px 6px; border-radius: 6px; background: #fff; font-size: 12px; }
-.eq-op { color: #888; font-size: 20px; font-weight: 700; }
-.eq-cell { padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; background: #f7f8fa; font-size: 14px; font-weight: 600; }
-.eq-result { padding: 10px 16px; border-radius: 12px; background: #b91c1c; color: #fff; font-size: 17px; font-weight: 800; }
+.demo-judge.on .ji { opacity: 1; transform: none; }
+.jans { display: flex; flex-direction: column; gap: 8px; }
+.jchip {
+  padding: 8px 12px;
+  border: 1px solid var(--wrong);
+  border-radius: 10px;
+  background: var(--wrong-bg);
+  color: var(--wrong-ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+.jchip b { font-weight: 800; }
+.jarrow { color: #999; font-size: 22px; font-weight: 700; text-align: center; }
+.jrule { min-width: 320px; padding: 12px 16px; border: 1px solid #d4d4d8; border-radius: 12px; background: #fafafa; }
+.jrule-h { margin: 0; font-size: 15px; font-weight: 800; }
+.jrule-note { margin: 2px 0 10px; color: #777; font-size: 12px; }
+.jrule ul { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+.jrule li { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.jcheck {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+.jresult { padding: 12px 22px; border-radius: 12px; background: var(--wrong); color: #fff; font-size: 19px; font-weight: 800; text-align: center; }
 
+/* =========================================================================
+ * 5. 그래프 탐색 · LLM 입력 (슬라이드 9~14)
+ * ========================================================================= */
 .demo-search { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; align-items: start; }
-.demo-graph { height: 560px; border: 1px solid var(--line); border-radius: 12px; background: #fcfcfd; }
 .demo-h { margin: 0 0 6px; color: #666; font-size: 13px; font-weight: 700; }
+/* 그래프 위에 투명한 덮개를 씌운다: 그래프는 손대지 않는 그림이고, 클릭·탭·스크롤은 페이지로 간다 */
+.demo-gwrap { position: relative; }
+.demo-gcover { position: absolute; inset: 0; z-index: 1; }
+.demo-graph { height: 540px; border: 1px solid var(--line); border-radius: 12px; background: #fcfcfd; }
+/* 그래프 아래 범례 */
+.demo-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; color: #666; font-size: 12px; }
+.demo-legend i {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 5px;
+  border: 2px solid;
+  border-radius: 3px;
+  vertical-align: -2px;
+}
+.demo-legend i.trail { width: 18px; height: 0; border: 0; border-top: 3px solid var(--trail); border-radius: 0; vertical-align: 3px; }
+
+/* 오른쪽 검은 상자 : LLM 입력 (칸 이름 | 값) */
 .demo-llm {
-  min-height: 250px;
   margin: 0 0 14px;
-  padding: 12px 14px;
+  padding: 12px 10px;
   border-radius: 12px;
   background: #0f172a;
   color: #cbd5e1;
-  font: 12.5px/1.6 ui-monospace, Consolas, "D2Coding", monospace;
-  white-space: pre-wrap;
-  word-break: break-all;
+  font-size: 13px;
+  line-height: 1.55;
   transition: box-shadow 0.5s ease;
 }
-.jl { display: block; padding: 1px 4px 1px 16px; border-radius: 4px; }
-.jk { color: #93c5fd; }
-.jv { color: #fde68a; }
+.jl { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; padding: 3px 6px; border-radius: 6px; }
+.jk { color: #93c5fd; font-weight: 700; word-break: keep-all; }
+.jv { color: #fde68a; white-space: pre-wrap; overflow-wrap: anywhere; }
 .jv.empty { color: #475569; }
-.jl.flash { animation: dflash 1.4s ease; }
-@keyframes dflash {
-  0% { background: rgba(245, 158, 11, 0.5); }
-  100% { background: transparent; }
-}
-.demo-sent { display: none; margin-top: 10px; color: #86efac; font-weight: 700; }
+.demo-sent { display: none; margin: 10px 6px 0; color: #86efac; font-weight: 700; }
 .demo-llm.sent { box-shadow: 0 0 0 3px #22c55e, 0 0 26px rgba(34, 197, 94, 0.45); }
 .demo-llm.sent .demo-sent { display: block; }
+/* 오른쪽 아래 : LLM에 넣지 않고 화면에 바로 붙이는 교과서 쪽 */
 .demo-direct { display: flex; flex-wrap: wrap; gap: 8px; min-height: 46px; padding: 10px 12px; border: 1px dashed #d4d4d4; border-radius: 12px; }
-.demo-page { padding: 4px 10px; border-radius: 999px; background: #ffedd5; color: #9a3412; font-size: 13px; font-weight: 700; animation: dpress 0.35s ease; }
+.demo-page { padding: 4px 10px; border-radius: 999px; background: #dcfce7; color: #166534; font-size: 13px; font-weight: 700; }
+/* 노드 내용이 LLM 입력 칸으로 날아가는 쪽지 (페이지 좌표라 스크롤해도 따라간다) */
 .demo-fly {
-  position: fixed;
+  position: absolute;
   z-index: 60;
   max-width: 280px;
   padding: 6px 10px;
   overflow: hidden;
-  border: 2px solid #f59e0b;
+  border: 2px solid var(--trail);
   border-radius: 10px;
   background: #fff7ed;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
@@ -855,168 +399,290 @@ body.on-demo main#demo-view { max-width: 1240px; }
   transition: transform 0.8s cubic-bezier(0.3, 0.7, 0.2, 1), opacity 0.8s ease;
 }
 
-.demo-fb { max-width: 760px; margin: 0 auto; }
-.demo-fbtext { min-height: 3.2em; margin: 14px 0 0; padding: 12px 14px; border-radius: 10px; background: #f7f8fa; font-size: 16px; line-height: 1.55; }
-.demo-server { margin: 8px 0 0; color: #555; font-size: 13px; font-weight: 600; }
-
-.demo-explain { margin-top: 18px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 12px; background: #f7f8fa; }
-.demo-progress { margin: 0 0 4px; color: #999; font-size: 12px; font-weight: 700; }
-.demo-text { margin: 0; color: #222; font-size: 16px; line-height: 1.55; }
-.demo-keys { margin: 8px 0 0; color: #aaa; font-size: 12px; }
-@media (max-width: 900px) {
-  .demo-cols, .demo-search { grid-template-columns: 1fr; }
-  #demo-q0.show.center { transform: none; }
+/* =========================================================================
+ * 6. 피드백 (슬라이드 15) : 왼쪽 문제 카드 + 오른쪽 피드백 세 문장
+ * ========================================================================= */
+.fb-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 28px; align-items: start; }
+.fb-q .dtag { display: none; }
+.fb-panel { padding: 18px 20px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+.fb-h { margin: 0 0 14px; color: #999; font-size: 13px; font-weight: 700; }
+.fb-parts { display: grid; gap: 16px; margin: 0; padding: 0; list-style: none; }
+.fb-part { opacity: 0; transform: translateY(6px); transition: opacity 0.4s ease, transform 0.4s ease; }
+.fb-part.on { opacity: 1; transform: none; }
+.fb-label { display: flex; align-items: center; gap: 7px; margin: 0 0 4px; color: #555; font-size: 13px; font-weight: 800; }
+.fb-label .n {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  font-size: 12px;
 }
+/* 글자를 치는 동안 높이가 흔들리지 않게: 다 쓴 글(.ghost, 안 보임) 위에 치는 글(.typed)을 겹친다 */
+.fb-text { display: grid; margin: 0; font-size: 18px; line-height: 1.65; }
+.fb-text > span { grid-area: 1 / 1; }
+.fb-text .ghost { visibility: hidden; }
+.fb-text b { font-weight: 800; }
+.fb-list { padding: 1px 6px; border: 1px solid #e5e7eb; border-radius: 6px; background: #f3f4f6; font-weight: 600; white-space: nowrap; }
+/* 마지막 문장(정개념) 강조 */
+.fb-part.key { padding: 12px 14px; border: 1px solid #bbf7d0; border-radius: 10px; background: var(--right-bg); }
+.fb-part.key .fb-label { color: var(--right); }
+.fb-part.key .fb-label .n { background: var(--right); }
+.fb-pages { margin: 18px 0 0; padding-top: 12px; border-top: 1px dashed var(--line); color: #333; font-size: 15px; font-weight: 600; opacity: 0; transition: opacity 0.4s ease; }
+.fb-pages.on { opacity: 1; }
+.fb-pages span { margin-right: 10px; color: #888; font-size: 13px; font-weight: 700; }
 
+/* =========================================================================
+ * 7. 좁은 화면(휴대폰)
+ * ========================================================================= */
+@media (max-width: 900px) {
+  .top { padding: 10px 16px 0; }
+  h1 { font-size: 17px; }
+  main#demo-view { padding: 6px 16px 0; }
+  .demo-stage { min-height: 0; }
+  .demo-cols, .demo-search, .fb-cols { grid-template-columns: 1fr; gap: 14px; }
+  #demo-q0.show.center { transform: none; }
+  .dq { padding: 14px 12px; }
+  .dq-stem { font-size: 16px; }
+  .blk { flex-wrap: wrap; white-space: normal; }
+  /* 판정 상자: 위→아래로, 화살표도 아래 방향 */
+  .jrow { flex-direction: column; align-items: stretch; gap: 10px; }
+  .jarrow { font-size: 0; }
+  .jarrow::before { content: "↓"; font-size: 22px; }
+  .jrule { min-width: 0; }
+  .demo-graph { height: 520px; }
+  .jl { grid-template-columns: 76px minmax(0, 1fr); }
+  .fb-panel { padding: 14px 14px; }
+  .fb-text { font-size: 16px; }
+  .demo-explain { bottom: 0; margin: 20px -16px 0; padding: 10px 16px 12px; border-width: 1px 0 0; border-radius: 14px 14px 0 0; }
+  .demo-text { font-size: 14px; }
+  .demo-keys { margin-top: 6px; }
+}
   </style>
 </head>
-<body class="dev on-demo">
+<body>
   <header class="top">
-    <div>
-      <h1 id="page-title">판정 시연 · I-LDEL 오개념</h1>
-    </div>
+    <h1 id="page-title"></h1>
   </header>
 
   <main id="demo-view">
     <section id="demo-stage" class="demo-stage">
-      <div id="demo-quiz" class="demo-quiz" hidden>
+      <!-- 슬라이드 1~8 : 문제 풀기 · 판정 -->
+      <div id="demo-quiz" hidden>
         <div class="demo-cols">
-          <article id="demo-q0" class="dq"></article>
-          <article id="demo-q1" class="dq"></article>
+          <article id="demo-q0" class="dq"></article> <!-- 문제 1 -->
+          <article id="demo-q1" class="dq"></article> <!-- 문제 2 -->
         </div>
-        <div id="demo-eq" class="demo-eq"></div>
+        <div id="demo-judge" class="demo-judge"></div> <!-- 슬라이드 8 판정 규칙 상자 -->
       </div>
+
+      <!-- 슬라이드 9~14 : 그래프 탐색 · LLM 입력 (제목 글자는 data.js SLIDE_9) -->
       <div id="demo-search" class="demo-search" hidden>
-        <div class="demo-gcol"><div id="demo-graph" class="demo-graph"></div></div>
-        <div class="demo-lcol">
-          <p class="demo-h">LLM 입력</p>
-          <pre id="demo-llm" class="demo-llm"></pre>
-          <p class="demo-h">LLM에 넣지 않고 화면에 직접</p>
+        <div>
+          <p class="demo-h" id="t-graph"></p>
+          <div class="demo-gwrap">
+            <div id="demo-graph" class="demo-graph"></div>
+            <div class="demo-gcover"></div>
+          </div>
+          <div id="demo-legend" class="demo-legend"></div>
+        </div>
+        <div>
+          <p class="demo-h" id="t-llm"></p>
+          <div id="demo-llm" class="demo-llm"></div>
+          <p class="demo-h" id="t-direct"></p>
           <div id="demo-direct" class="demo-direct"></div>
         </div>
       </div>
-      <div id="demo-fb" class="demo-fb" hidden></div>
+
+      <!-- 슬라이드 15 : 피드백 -->
+      <div id="demo-fb" hidden></div>
     </section>
-    <section class="demo-explain">
-      <p id="demo-progress" class="demo-progress"></p>
+
+    <!-- 맨 아래 회색 설명 칸 (글은 data.js 각 SLIDE_N.narration, 안내·버튼은 COMMON) -->
+    <section id="demo-explain" class="demo-explain">
+      <div class="demo-bar">
+        <p id="demo-progress" class="demo-progress"></p>
+        <div class="demo-nav">
+          <button type="button" id="demo-prev"></button>
+          <button type="button" id="demo-next" class="next"></button>
+        </div>
+      </div>
       <p id="demo-text" class="demo-text"></p>
-      <p class="demo-keys">Enter 다음 · Backspace 이전</p>
+      <p class="demo-keys"><span id="hint-keys" class="hint-keys"></span><span id="hint-tap" class="hint-tap"></span></p>
     </section>
   </main>
 
+  <!-- 그래프 라이브러리(vis-network). 인터넷 연결이 필요하다 -->
   <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+  <!-- 시연 내용(글자·데이터). 이 줄은 배포가 찾아서 고치므로 모양을 바꾸지 않는다 -->
+  <script src="data.js"></script>
   <script>
-window.DEMO_DATA = {"title": "I-LDEL 오개념 T14(둘 다 확신) → 오개념", "unit_id": "U2", "items": [{"display_no": "1-3", "stem": "프로그램을 실행했을 때 엔트리봇이 말하는 것은?", "code_text": "▤ 이름 = [가은, 나래, 다솜, 라희]\n시작하기 버튼을 클릭했을 때\n    (2) 번째 항목을 [이름] 에서 삭제하기\n    (이름 의 (2) 번째 항목) 을(를) 말하기", "table_md": "", "options": [{"key": "1", "text": "아무것도 말하지 않는다", "correct": false, "response_type": "T", "type_label": "표적 오개념", "card_id": "MC-LIST-08"}, {"key": "2", "text": "라희", "correct": false, "response_type": "O", "type_label": "다른 오개념", "card_id": "MC-LIST-01"}, {"key": "3", "text": "다솜", "correct": true, "response_type": "C", "type_label": "정답", "card_id": ""}, {"key": "4", "text": "나래", "correct": false, "response_type": "D", "type_label": "결손·미분류", "card_id": ""}, {"key": "X", "text": "그 외 답(직접 쓰기)", "correct": false, "response_type": "X", "type_label": "그 외 답", "card_id": ""}], "answer": {"key": "1", "conf": 3, "conf_label": "확실해요"}}, {"display_no": "1-4", "stem": "프로그램을 실행했을 때 엔트리봇이 말하는 것은?", "code_text": "▤ 버킷 리스트 = [여행, 요리, 수영, 독서]\n시작하기 버튼을 클릭했을 때\n    (2) 번째 항목을 [버킷 리스트] 에서 삭제하기\n    (버킷 리스트 의 (2) 번째 항목) 을(를) 말하기", "table_md": "", "options": [{"key": "1", "text": "독서", "correct": false, "response_type": "O", "type_label": "다른 오개념", "card_id": "MC-LIST-01"}, {"key": "2", "text": "수영", "correct": true, "response_type": "C", "type_label": "정답", "card_id": ""}, {"key": "3", "text": "요리", "correct": false, "response_type": "D", "type_label": "결손·미분류", "card_id": ""}, {"key": "4", "text": "아무것도 말하지 않는다", "correct": false, "response_type": "T", "type_label": "표적 오개념", "card_id": "MC-LIST-08"}, {"key": "X", "text": "그 외 답(직접 쓰기)", "correct": false, "response_type": "X", "type_label": "그 외 답", "card_id": ""}], "answer": {"key": "4", "conf": 3, "conf_label": "확실해요"}}], "confidence": [{"value": 3, "label": "확실해요"}, {"value": 2, "label": "조금 확실해요"}, {"value": 1, "label": "잘 모르겠어요"}], "card": {"card_id": "MC-LIST-08", "belief": "항목을 삭제해도 뒤 항목의 번호는 그대로다", "target_no": "T14", "concept_id": "CPT-LIST-DELETE", "concept_label": "항목 삭제하기"}, "judgement": {"state": "MC", "state_label": "오개념", "tokens": ["T3", "T3"], "token_labels": ["표적 오개념 · 확실해요", "표적 오개념 · 확실해요"], "matrix_cell": "MC", "card_id": "MC-LIST-08", "detail": "1-3 오답(표적 오개념) · 확실해요 / 1-4 오답(표적 오개념) · 확실해요 → 판정표에서 이 응답 조합은 「오개념」 칸이고, 두 응답이 같은 오개념(MC-LIST-08)을 가리켜 오개념으로 판정했어요."}, "graph": {"nodes": [{"id": "OPT-1-3", "kind": "option", "label": "1-3 ①\n아무것도 말하지 않는다"}, {"id": "OPT-1-4", "kind": "option", "label": "1-4 ④\n아무것도 말하지 않는다"}, {"id": "MC-LIST-08", "kind": "card", "label": "오개념 카드 MC-LIST-08\n항목을 삭제해도 뒤 항목의 번호는 그대로다"}, {"id": "CPT-LIST-DELETE", "kind": "concept", "label": "항목 삭제하기"}, {"id": "RES-1", "kind": "resource", "label": "교과서\n102~103쪽"}, {"id": "RES-2", "kind": "resource", "label": "교과서\n104~105쪽"}, {"id": "CPT-LIST", "kind": "concept", "label": "리스트"}, {"id": "CPT-LIST-INDEX", "kind": "concept", "label": "항목 번호(순서)"}, {"id": "MC-LIST-01", "kind": "card", "label": "오개념 카드 MC-LIST-01\n리스트 항목 번호는 0부터 시작한다"}], "edges": [{"from": "OPT-1-3", "to": "MC-LIST-08", "rel": "INDICATES", "rel_label": "지시"}, {"from": "OPT-1-4", "to": "MC-LIST-08", "rel": "INDICATES", "rel_label": "지시"}, {"from": "MC-LIST-08", "to": "CPT-LIST-DELETE", "rel": "RELATED_CONCEPT", "rel_label": "관련 개념"}, {"from": "MC-LIST-01", "to": "CPT-LIST-INDEX", "rel": "RELATED_CONCEPT", "rel_label": "관련 개념"}, {"from": "CPT-LIST", "to": "RES-1", "rel": "EXPLAINED_IN", "rel_label": "설명 자료"}, {"from": "CPT-LIST-DELETE", "to": "RES-1", "rel": "EXPLAINED_IN", "rel_label": "설명 자료"}, {"from": "CPT-LIST-DELETE", "to": "RES-2", "rel": "EXPLAINED_IN", "rel_label": "설명 자료"}, {"from": "CPT-LIST-INDEX", "to": "RES-1", "rel": "EXPLAINED_IN", "rel_label": "설명 자료"}, {"from": "CPT-LIST-INDEX", "to": "RES-2", "rel": "EXPLAINED_IN", "rel_label": "설명 자료"}, {"from": "CPT-LIST", "to": "CPT-LIST-DELETE", "rel": "PREREQUISITE_OF", "rel_label": "선수"}, {"from": "CPT-LIST-INDEX", "to": "CPT-LIST-DELETE", "rel": "PREREQUISITE_OF", "rel_label": "선수"}], "path": {"options": ["OPT-1-3", "OPT-1-4"], "card": "MC-LIST-08", "concept": "CPT-LIST-DELETE", "resources": ["RES-1", "RES-2"]}}, "llm_input": {"display_no": "1-4", "state": "MC", "stem": "프로그램을 실행했을 때 엔트리봇이 말하는 것은?", "code": "▤ 버킷 리스트 = [여행, 요리, 수영, 독서]\n시작하기 버튼을 클릭했을 때\n    (2) 번째 항목을 [버킷 리스트] 에서 삭제하기\n    (버킷 리스트 의 (2) 번째 항목) 을(를) 말하기", "concept": "항목 삭제하기", "confirm_question": "항목을 지워도 뒤 항목의 번호는 그대로라고 생각했나요?", "counter_example": "[가은, 나래, 다솜, 라희]에서 2번째 항목을 삭제한 뒤 2번째 항목을 말하면 ‘다솜’을 말한다.", "correct_conception": "항목을 삭제하면 뒤 항목들이 한 칸씩 앞으로 와 번호가 바뀐다."}, "server_pages": ["102~103", "104~105"], "feedback": {"display_no": "1-4", "text": "2번째 항목을 지우면 그 자리가 빈칸으로 남는다고 생각했나요? [여행, 요리, 수영, 독서]에서 2번째 항목 ‘요리’를 삭제하면 리스트는 [여행, 수영, 독서]가 되어서, 엔트리봇은 2번째 항목인 ‘수영’을 말해요. 항목을 삭제하면 뒤 항목들이 한 칸씩 앞으로 당겨져 번호가 바뀌어요."}};
-// 웹(app.js)이 주던 것 중 시연이 쓰는 것만
-const state = { phase: "demo" };
-const $ = (id) => document.getElementById(id);
-function show() {}
-
-function esc(s) {
-  return String(s ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
-
-function chipify(text) {
-  let s = esc(text)
-    .replace(/\(으\)로/g, "⟦EU⟧")
-    .replace(/을\(를\)/g, "⟦UL⟧")
-    .replace(/\(이\)라면/g, "⟦IF⟧")
-    .replace(/\(이\)면/g, "⟦IM⟧");
-  s = s.replace(/\[([^\]]+)\]/g, '<span class="chip dd">$1</span>');
-  s = s.replace(/\(\(([^)]+)\)\s*([+\-−×*/])\s*\(([^)]+)\)\)/g, '<span class="chip">$1 $2 $3</span>');
-  s = s.replace(/\(([^)]+)\)/g, (_, n) => `<span class="chip${/값|번째/.test(n) ? " dd" : ""}">${n}</span>`);
-  return s
-    .replace(/⟦EU⟧/g, "(으)로")
-    .replace(/⟦UL⟧/g, "을(를)")
-    .replace(/⟦IF⟧/g, "(이)라면")
-    .replace(/⟦IM⟧/g, "(이)면");
-}
-
-function blockKind(line) {
-  const t = line.trim();
-  if (t.includes("시작하기")) return "hat";
-  if (t.startsWith("함수 정의") || t.startsWith("함수 ")) return "fn";
-  if (t.includes("반복") || t.startsWith("만일") || t.startsWith("아니면")) return "ctrl";
-  if (t.startsWith("▤") || t.startsWith("◇")) return "decl";
-  if (/정하기|더하기|말하기|삭제|추가|항목/.test(t)) return "var";
-  return "cmd";
-}
-
-function renderBlocks(text) {
-  if (!text) return "";
-  return text
-    .split("\n")
-    .map((line) => {
-      if (!line.trim()) return "";
-      const kind = blockKind(line);
-      const pad = Math.min((line.match(/^\s*/) || [""])[0].length, 16);
-      const inner = kind === "hat" ? esc(line.trim()) : chipify(line.trim());
-      return `<div class="blk ${kind}" style="margin-left:${pad * 7}px">${inner}</div>`;
-    })
-    .join("");
-}
-
-function renderTable(md) {
-  if (!md) return "";
-  const rows = md
-    .trim()
-    .split("\n")
-    .map((l) => l.trim())
-    .filter((l) => l.includes("|") && !/^[\s|:-]+$/.test(l));
-  if (!rows.length) return "";
-  const cells = rows.map((r) =>
-    r
-      .replace(/^\|/, "")
-      .replace(/\|$/, "")
-      .split("|")
-      .map((c) => c.trim())
-  );
-  return `<table><thead><tr>${cells[0].map((c) => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>${cells
-    .slice(1)
-    .map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`)
-    .join("")}</tbody></table>`;
-}
-
-function josa(word, a, b) {
-  const ch = String(word || "").trim().replace(/\([^)]*\)$/, "").trim().slice(-1);
-  if (/[0-9]/.test(ch)) return "013678".includes(ch) ? a : b;
-  const code = ch.charCodeAt(0) - 0xac00;
-  if (code < 0 || code > 11171) return b;
-  return code % 28 ? a : b;
-}
-  </script>
-  <script>
-// 판정 시연(개발자 모드): I-LDEL 오개념 T14(둘 다 확신) → 오개념 한 사례를 Enter로 한 단계씩 보여 준다.
-// 데이터는 /api/demo-case(proto/demo_case.py). 판정·그래프 탐색·LLM 입력은 실제 코드 결과이고, 피드백 문장만 하드코딩이다.
-// 단계 설명은 아래 설명 칸(#demo-text)에만 쓴다. Enter: 다음, Backspace: 이전.
 (() => {
-  const D = { data: null, step: -1, timers: [], net: null, nodes: null, edges: null, built: false };
+  "use strict";
   const el = (id) => document.getElementById(id);
 
-  const KIND_COLOR = {
-    option: { bg: "#fdecec", border: "#dc2626" },
-    card: { bg: "#fef3c7", border: "#d97706" },
-    concept: { bg: "#dbeafe", border: "#2563eb" },
-    resource: { bg: "#ffedd5", border: "#ea580c" },
-  };
-  // LLM 입력 칸마다 어디서 채우는지: 문항(item) · 오개념 카드(card) · 개념(concept)
-  const SRC = { display_no: "item", state: "item", stem: "item", code: "item", confirm_question: "card", counter_example: "card", correct_conception: "card" };
-  const FILL_STEP = { item: 8, card: 10, concept: 11 };
-  const PAGES_STEP = 12;
-  const SENT_STEP = 13;
+  function esc(s) {
+    return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  /* ----- {이름표} 채우기 -----
+   * data.js 글 안의 {문제1.정답}, {오개념.이름} 같은 이름표를 값으로 바꾼다.
+   * 값은 아래 V에 한 번만 모아 둔다(data.js를 읽은 뒤 makeVars가 채움). 칸마다 쓰는 {번호} 같은 것은 vars로 받는다.
+   * 이름표 바로 뒤의 을/를, 이/가, 은/는, 과/와, 으로/로 는 값의 받침에 맞춰 하나를 고른다.
+   * 모르는 이름표는 {이름표} 그대로 둔다(화면에 보여서 오타를 찾기 쉽게). */
+  const V = {};
+  const CIRCLED_DIGIT = { "①": "1", "②": "2", "③": "3", "④": "4", "⑤": "5" };
+  function lastSound(word) {
+    for (const ch0 of [...String(word)].reverse()) {
+      const ch = CIRCLED_DIGIT[ch0] || ch0;
+      const code = ch.charCodeAt(0);
+      if (code >= 0xac00 && code <= 0xd7a3) {
+        const jong = (code - 0xac00) % 28; // 받침 번호(0 = 없음, 8 = ㄹ)
+        return { batchim: jong > 0, rieul: jong === 8 };
+      }
+      if (/[0-9]/.test(ch)) return { batchim: "013678".includes(ch), rieul: "178".includes(ch) }; // 영·일·삼·육·칠·팔
+      if (/[a-z]/i.test(ch)) return { batchim: /[lmnr]/i.test(ch), rieul: /[lr]/i.test(ch) };
+    }
+    return { batchim: false, rieul: false };
+  }
+  function pickJosa(word, pair) {
+    const [a, b] = pair.split("/");
+    const strong = ["을", "이", "은", "과", "으로"].includes(a) ? a : b; // 받침 있을 때
+    const weak = strong === a ? b : a;                                   // 받침 없을 때
+    const s = lastSound(word);
+    if (strong === "으로") return s.batchim && !s.rieul ? "으로" : "로"; // ㄹ 받침은 '로'
+    return s.batchim ? strong : weak;
+  }
+  const JOSA = "을|를|이|가|은|는|과|와|으로|로";
+  const PLACE = new RegExp(`\\{([^{}\\s]+)\\}([」』’”"')\\]]*)((?:${JOSA})/(?:${JOSA}))?`, "g");
+  function fill(s, vars, wrap) {
+    const all = { ...V, ...vars };
+    return String(s ?? "").replace(PLACE, (m, key, close, pair) => {
+      if (!(key in all)) return m;
+      const val = String(all[key] ?? "");
+      return wrap(val) + close + (pair ? pickJosa(val, pair) : "");
+    });
+  }
+  const same = (x) => x;
+  // data.js 글자 → 화면 HTML: **굵게**, {이름표} 채우기
+  function rich(fmt, vars = {}) {
+    return fill(esc(fmt).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>"), vars, esc);
+  }
+  // data.js 글자 → 꾸밈 없는 글자(그래프 노드, LLM 입력 칸, 날아가는 쪽지)
+  function plain(fmt, vars = {}) {
+    return fill(String(fmt ?? "").replace(/\*\*/g, ""), vars, same);
+  }
+  // data.js가 깨졌을 때 등: 아래 회색 칸에 빨간 안내
+  function showError(msg) {
+    el("demo-progress").textContent = "!";
+    el("demo-text").innerHTML = `<span class="demo-error">${esc(msg)}</span>`;
+  }
 
-  // ---------- 타이머 ----------
+  /* =======================================================================
+   * 1. 슬라이드 정의 (1~15)
+   *    각 슬라이드에서 화면이 어떻게 바뀌는지는 아래 함수들이 이 이름(key)을 보고 정한다.
+   *    글자는 data.js의 SLIDE_N (N = 번호).
+   * ======================================================================= */
+  const STEPS = [
+    { key: "q1_show", phase: "quiz" },     //  1 문제 1 등장(가운데)
+    { key: "q1_pick", phase: "quiz" },     //  2 문제 1 답 → 확신도 고름
+    { key: "q1_grade", phase: "quiz" },    //  3 문제 1 채점 + 오개념 노드 글
+    { key: "q2_show", phase: "quiz" },     //  4 문제 2 등장(문제 1은 왼쪽으로)
+    { key: "q2_pick", phase: "quiz" },     //  5 문제 2 답 → 확신도 고름
+    { key: "q2_grade", phase: "quiz" },    //  6 문제 2 채점
+    { key: "reduce", phase: "quiz" },      //  7 고른 답·확신도만 남김
+    { key: "judge", phase: "quiz" },       //  8 판정 규칙 상자
+    { key: "search", phase: "search" },    //  9 그래프·LLM 입력 등장, 문항 칸 채움
+    { key: "g_options", phase: "search" }, // 10 선지 노드 켜짐
+    { key: "g_card", phase: "search" },    // 11 오개념 노드 → 믿음 확인 질문·실행 반례·정개념 칸
+    { key: "g_concept", phase: "search" }, // 12 개념 노드 → 개념 칸
+    { key: "g_pages", phase: "search" },   // 13 교과서 노드 → 오른쪽 아래 칸
+    { key: "send", phase: "search" },      // 14 LLM으로 보냄
+    { key: "feedback", phase: "fb" },      // 15 피드백
+  ];
+  const AT = {}; // 슬라이드 이름 → 번호(0부터)
+  STEPS.forEach((s, i) => (AT[s.key] = i));
+
+  // ----- data.js 읽기 -----
+  const D = window.DEMO;
+  if (!D || !D.common || !Array.isArray(D.slides)) {
+    showError("data.js를 읽지 못했습니다. data.js에서 쉼표(,)·따옴표·괄호가 빠지지 않았는지 확인하세요. (F12 → Console에 틀린 줄 번호가 나옵니다)");
+    return;
+  }
+  if (D.slides.length !== STEPS.length || D.slides.some((s) => !s)) {
+    showError(`data.js의 슬라이드는 ${STEPS.length}개여야 합니다(지금 ${D.slides.length}개). 맨 아래 window.DEMO의 slides 목록을 확인하세요.`);
+    return;
+  }
+  const C = D.common;
+  const slide = (key) => D.slides[AT[key]] || {};
+  const PROBLEMS = [slide("q1_show").problem, slide("q2_show").problem]; // 문제 1, 문제 2
+  const GRADE = slide("q1_grade");    // ✕ 오답·✓ 정답 글자, 오개념 목록
+  const JUDGE = slide("judge");       // 판정 규칙 상자
+  const SEARCH = slide("search");     // 그래프·LLM 입력
+  const PAGES = slide("g_pages");     // 교과서 쪽
+  const FB = slide("feedback");       // 피드백
+  const MC = GRADE.misconceptions || {};
+  const G = SEARCH.graph;
+  const LLM = SEARCH.llmInput || [];
+
+  // 실행 중 상태
+  const S = { step: -1, timers: [], net: null, nodes: null, edges: null, edgeIds: null, narrow: null, pagesOn: null, vw: 0 };
+
+  /* =======================================================================
+   * 2. 공통 도구
+   * ======================================================================= */
+  const CIRCLED = { 1: "①", 2: "②", 3: "③", 4: "④", 5: "⑤" };
+  const lines = (v) => (Array.isArray(v) ? v : String(v ?? "").split("\n"));
+  const confLabel = (v) => (C.confidence.find((c) => String(c.value) === String(v)) || {}).label || "";
+  const mcOf = (id) => MC[id] || { name: id, desc: "" };
+  const chosenOpt = (p) => p.options.find((o) => o.key === p.answer.key) || {};
+  const problemNo = (n) => PROBLEMS[(n || 1) - 1] || PROBLEMS[0];
+
+  // {이름표} 값 모으기 — data.js 맨 위 "[한 곳만 고치면 모든 곳에 반영되는 말]" 표와 같다
+  function makeVars() {
+    const fromProblem = (prefix, p) => {
+      const o = chosenOpt(p);
+      const c = p.options.find((x) => x.type === "C") || {};
+      Object.assign(V, {
+        [`${prefix}.번호`]: p.no,
+        [`${prefix}.고른번호`]: CIRCLED[o.key] || o.key || "",
+        [`${prefix}.고른답`]: o.text || "",
+        [`${prefix}.정답번호`]: CIRCLED[c.key] || c.key || "",
+        [`${prefix}.정답`]: c.text || "",
+        [`${prefix}.확신도`]: confLabel(p.answer.conf),
+        [`${prefix}.오개념`]: o.mc ? mcOf(o.mc).name : "",
+        [`${prefix}.문제`]: p.stem,
+        [`${prefix}.코드`]: lines(p.code).join("\n"),
+      });
+    };
+    fromProblem("문제1", PROBLEMS[0]);
+    fromProblem("문제2", PROBLEMS[1]);
+    fromProblem("피드백문제", problemNo(FB.problem || 2));
+    const card = mcOf(G.path.card);
+    Object.assign(V, {
+      "오개념.이름": card.name || "",
+      "오개념.설명": card.desc || "",
+      "오개념.믿음확인질문": card.confirmQuestion || "",
+      "오개념.실행반례": card.counterExample || "",
+      "오개념.정개념": card.correctConception || "",
+      개념: (G.nodes.find((n) => n.id === G.path.concept) || {}).title || "",
+      교과서쪽: (PAGES.pages || []).map((p) => `${p}쪽`).join(", "),
+      판정결과: JUDGE.result || "",
+    });
+  }
+  makeVars();
+
+  // 타이머: 슬라이드를 넘기면 이전 슬라이드에서 걸어 둔 움직임을 모두 취소한다
   function later(fn, ms) {
-    D.timers.push(setTimeout(fn, ms));
+    S.timers.push(setTimeout(fn, ms));
   }
   function cancelAll() {
-    D.timers.forEach(clearTimeout);
-    D.timers = [];
+    S.timers.forEach(clearTimeout);
+    S.timers = [];
     document.querySelectorAll(".demo-fly").forEach((f) => f.remove());
   }
+  // 움직임 없이 바로 바꾸기
   function instant(fn) {
     const st = el("demo-stage");
     st.classList.add("noanim");
@@ -1024,147 +690,135 @@ function josa(word, a, b) {
     void st.offsetWidth;
     st.classList.remove("noanim");
   }
-
-  // ---------- 데이터 ----------
-  function info(qi) {
-    const it = D.data.items[qi];
-    const chosen = it.options.find((o) => o.key === it.answer.key) || {};
-    const correct = it.options.find((o) => o.correct) || {};
-    return { it, no: it.display_no, chosen, correct, conf: it.answer.conf_label };
+  // 한 번만 재생하는 움직임(CSS 클래스에 묶지 않아서 슬라이드를 넘겨도 다시 재생되지 않는다)
+  function pulse(node) {
+    node.animate([{ transform: "scale(1)" }, { transform: "scale(0.96)" }, { transform: "scale(1)" }], { duration: 350, easing: "ease" });
   }
-  const card = () => D.data.card;
-  const pagesText = () => D.data.server_pages.join(", ");
-
-  // ---------- 단계와 설명 ----------
-  const STEPS = [
-    { phase: "quiz", text: () => `학생 화면에 ${info(0).no} 문항이 나옵니다. 선택지에는 어느 것이 정답이고 어느 것이 오개념인지 표시가 없습니다.` },
-    { phase: "quiz", text: () => pickText(0) },
-    { phase: "quiz", text: () => gradeText(0) },
-    {
-      phase: "quiz",
-      text: () =>
-        `${info(0).no}${josa(info(0).no, "은", "는")} 왼쪽으로 옮기고 ${info(1).no} 문항이 나옵니다. 두 문항은 같은 개념 「${card().concept_label}」${josa(card().concept_label, "을", "를")} 묻는 한 판정 단위(${D.data.unit_id})라서 두 응답을 함께 판정합니다.`,
-    },
-    { phase: "quiz", text: () => pickText(1) },
-    { phase: "quiz", text: () => gradeText(1) },
-    { phase: "quiz", text: () => "판정에는 두 문항에서 고른 답의 종류와 확신도만 씁니다. 문제와 고르지 않은 선택지는 빠지고, 고른 선택지와 확신도만 남습니다." },
-    {
-      phase: "quiz",
-      text: () => {
-        const j = D.data.judgement;
-        const [a, b] = j.token_labels;
-        const [ta, tb] = j.tokens;
-        return `두 응답은 ‘${a}’(${ta})와 ‘${b}’(${tb})입니다. 판정표에서 ${ta} × ${tb} 조합은 「${j.state_label}」 칸이고, 두 답이 같은 오개념 카드 ${j.card_id}${josa(j.card_id, "을", "를")} 가리키므로 ${j.state_label}${josa(j.state_label, "으로", "로")} 판정합니다.`;
-      },
-    },
-    {
-      phase: "search",
-      text: () =>
-        `${D.data.judgement.state_label}${josa(D.data.judgement.state_label, "으로", "로")} 판정되면 그래프에서 ‘선택지 → 오개념 카드 → 관련 개념 → 학습 자료’ 순서로 근거를 찾습니다. 오른쪽은 ${D.data.feedback.display_no} 피드백을 만들 때 LLM에 실제로 들어가는 입력이고, 문항 번호·판정·문제·코드는 문항에서 바로 채웁니다.`,
-    },
-    { phase: "search", text: () => `출발점은 학생이 고른 두 선택지, ${info(0).no} ${info(0).chosen.key}번과 ${info(1).no} ${info(1).chosen.key}번입니다.` },
-    {
-      phase: "search",
-      text: () => `두 선택지가 ‘지시’하는 오개념 카드 ${card().card_id}에 도착했습니다. 카드에 적힌 확인 질문·반례·정개념이 LLM 입력에 들어갑니다.`,
-    },
-    {
-      phase: "search",
-      text: () =>
-        `카드의 ‘관련 개념’ 선을 따라 「${card().concept_label}」 개념에 도착했습니다. 개념 이름이 LLM 입력에 들어갑니다. 주변의 다른 개념·카드는 이번 경로가 아니라서 지나칩니다.`,
-    },
-    {
-      phase: "search",
-      text: () => `개념의 ‘설명 자료’ 선을 따라 교과서 ${pagesText()}쪽에 도착했습니다. 쪽 번호는 LLM에 넣지 않고, 피드백 화면에 서버가 직접 붙입니다.`,
-    },
-    {
-      phase: "search",
-      text: () => "완성된 입력을 LLM에 보냅니다. LLM은 판정하지 않고, 받은 근거만으로 확인 질문 → 반례 → 정개념 순서의 문장을 씁니다.",
-    },
-    {
-      phase: "fb",
-      text: () =>
-        `${D.data.feedback.display_no} 피드백입니다. 확인 질문 → 이 문항의 리스트로 든 반례 → 정개념 순서로 쓰고, 마지막 줄의 교과서 쪽은 서버가 붙입니다. 이 시연의 피드백 문장은 미리 써 둔 것입니다.`,
-    },
-  ];
-
-  function pickText(qi) {
-    const a = info(qi);
-    return `학생이 ${a.no}에서 ${a.chosen.key}번 「${a.chosen.text}」${josa(a.chosen.text, "을", "를")} 고르고, 확신도는 ‘${a.conf}’${josa(a.conf, "을", "를")} 고릅니다.`;
-  }
-  function gradeText(qi) {
-    const a = info(qi);
-    const c = card();
-    const first = `채점합니다. 학생이 고른 ${a.chosen.key}번은 오답이라 빨강, 정답 ${a.correct.key}번 「${a.correct.text}」${josa(a.correct.text, "은", "는")} 파랑입니다.`;
-    if (qi === 0) return `${first} ${a.chosen.key}번은 오개념 카드 ${c.card_id} 「${c.belief}」 노드를 가리키는 선택지라서 그 노드가 붙습니다.`;
-    return `${first} ${a.chosen.key}번도 같은 오개념 카드 ${c.card_id} 노드를 가리킵니다.`;
+  function flash(node) {
+    node.animate([{ backgroundColor: "rgba(245, 158, 11, 0.5)" }, { backgroundColor: "rgba(245, 158, 11, 0)" }], { duration: 1400, easing: "ease" });
   }
 
-  // ---------- 1. 문제 풀기 · 판정 ----------
-  function optionsHtml(it, opts = {}) {
-    const c = card();
-    return it.options
+  /* =======================================================================
+   * 3. 엔트리 블록 그리기 (data.js SLIDE_1·SLIDE_4의 problem.code)
+   * ======================================================================= */
+  // 한 줄을 칩으로: [이름] → 드롭다운 칩, (값) → 흰 칩, (… 칩 …) → 값 블록. 괄호는 안쪽부터 바꾼다.
+  function chipify(text) {
+    let s = esc(text)
+      .replace(/\(으\)로/g, "⟦EU⟧")
+      .replace(/을\(를\)/g, "⟦UL⟧")
+      .replace(/\(이\)라면/g, "⟦IF⟧")
+      .replace(/\(이\)면/g, "⟦IM⟧");
+    s = s.replace(/\[([^\]]+)\]/g, '<span class="chip dd">$1</span>');
+    let before;
+    do {
+      before = s;
+      s = s.replace(/\(([^()]+)\)/g, (_, n) =>
+        n.includes('class="chip') ? `<span class="chip rep">${n.trim()}</span>` : `<span class="chip${/값|번째/.test(n) ? " dd" : ""}">${n}</span>`
+      );
+    } while (s !== before);
+    return s.replace(/⟦EU⟧/g, "(으)로").replace(/⟦UL⟧/g, "을(를)").replace(/⟦IF⟧/g, "(이)라면").replace(/⟦IM⟧/g, "(이)면");
+  }
+
+  // 블록 색 정하기 (줄 안의 낱말로 판단)
+  function blockKind(line) {
+    const t = line.trim();
+    if (t.includes("시작하기")) return "hat";
+    if (t.startsWith("함수 정의") || t.startsWith("함수 ")) return "fn";
+    if (t.includes("반복") || t.startsWith("만일") || t.startsWith("아니면")) return "ctrl";
+    if (t.startsWith("▤") || t.startsWith("◇")) return "decl";
+    if (/정하기|더하기|말하기|삭제|추가|항목/.test(t)) return "var";
+    return "cmd";
+  }
+
+  function renderBlocks(code) {
+    return lines(code)
+      .filter((line) => line.trim())
+      .map((line) => {
+        const kind = blockKind(line);
+        const pad = Math.min((line.match(/^\s*/) || [""])[0].length, 16);
+        const inner = kind === "hat" ? esc(line.trim()) : chipify(line.trim());
+        return `<div class="blk ${kind}" style="margin-left:${pad * 7}px">${inner}</div>`;
+      })
+      .join("");
+  }
+
+  /* =======================================================================
+   * 4. 문제 카드 (슬라이드 1~8, 15)
+   * ======================================================================= */
+  function optionsHtml(p, graded) {
+    return p.options
       .map((o) => {
-        const chosen = o.key === it.answer.key;
-        const cls = ["dopt", chosen ? "chosen" : "", o.correct ? "correct" : "", opts.graded && chosen ? "on" : ""].filter(Boolean).join(" ");
-        const label = o.key === "X" ? "그 외 답(직접 쓰기)" : o.text;
-        const tag = chosen && o.card_id ? `<span class="dtag">→ 오개념 노드 <b>${esc(o.card_id)}</b> 「${esc(o.card_id === c.card_id ? c.belief : "")}」</span>` : "";
-        // dfold 바로 안쪽 div에는 여백이 없어야 접을 때 높이가 0까지 줄어든다
-        return `<div class="dfold${chosen ? " keep" : ""}"><div><div class="${cls}"><span class="dradio"></span><span class="dopt-text">${esc(o.key)}) ${esc(label)}</span>${tag}</div></div></div>`;
+        const chosen = o.key === p.answer.key;
+        const correct = o.type === "C";
+        const cls = ["dopt", chosen && "chosen", correct && "correct", graded && chosen && "on"].filter(Boolean).join(" ");
+        let badge = "";
+        if (chosen && !correct) badge = `<span class="dbadge wrong">${rich(GRADE.wrongBadge)}</span>`;
+        else if (correct) badge = `<span class="dbadge right${chosen ? " mine" : ""}">${rich(GRADE.rightBadge)}</span>`;
+        const mc = chosen && o.mc ? mcOf(o.mc) : null;
+        const tag = mc ? `<span class="dtag">${rich(GRADE.misconceptionTag, { 이름: mc.name, 설명: mc.desc })}</span>` : "";
+        // .dfold 바로 안쪽 div에는 여백이 없어야 접을 때 높이가 0까지 줄어든다
+        return `<div class="dfold${chosen ? " keep" : ""}"><div><div class="${cls}"><span class="dradio"></span><span class="dopt-text">${esc(o.key)}) ${esc(o.text)}</span>${badge}${tag}</div></div></div>`;
       })
       .join("");
   }
 
-  function confHtml(it, opts = {}) {
-    return D.data.confidence
-      .map((c) => {
-        const chosen = String(c.value) === String(it.answer.conf);
-        return `<span class="dconf${chosen ? " chosen" : ""}${opts.graded && chosen ? " on" : ""}"><span class="dradio"></span>${esc(c.label)}</span>`;
-      })
-      .join("");
+  function confHtml(p, graded) {
+    const opts = C.confidence.map((c) => {
+      const chosen = String(c.value) === String(p.answer.conf);
+      return `<span class="dconf${chosen ? " chosen" : ""}${graded && chosen ? " on" : ""}"><span class="dradio"></span>${esc(c.label)}</span>`;
+    });
+    return `<div class="dq-conf"><p class="dq-conf-h">${rich(C.confidenceTitle)}</p><div class="dq-conf-row">${opts.join('<span class="dsep">·</span>')}</div></div>`;
   }
 
-  function questionHtml(it, opts = {}) {
-    const table = renderTable(it.table_md);
-    return `<p class="dq-no">${esc(it.display_no)}${opts.mark ? ` · <span class="dq-mark">${esc(opts.mark)}</span>` : ""}</p>
+  function questionHtml(p, opt = {}) {
+    return `<p class="dq-no">${rich(C.problemLabel, { 번호: p.no })}${opt.mark ? ` · <span class="dq-mark">${rich(opt.mark)}</span>` : ""}</p>
       <div class="dfold"><div>
-        <h3 class="dq-stem">${esc(it.stem)}</h3>
-        ${it.code_text ? `<div class="dq-code blocks">${renderBlocks(it.code_text)}</div>` : ""}
-        ${table ? `<div class="value-table">${table}</div>` : ""}
+        <h3 class="dq-stem">${esc(p.stem)}</h3>
+        <div class="dq-code blocks">${renderBlocks(p.code)}</div>
       </div></div>
-      <div class="dq-opts">${optionsHtml(it, opts)}</div>
-      <div class="dq-conf"><span class="dq-conf-h">확신도</span>${confHtml(it, opts)}</div>`;
+      <div class="dq-opts">${optionsHtml(p, opt.graded)}</div>
+      ${confHtml(p, opt.graded)}`;
+  }
+
+  // 슬라이드 8 판정 규칙 상자: 두 응답 → 규칙 체크 → 결과
+  function buildJudge() {
+    const chips = PROBLEMS.map((p) => {
+      const o = chosenOpt(p);
+      const vars = { 번호: p.no, 확신도: confLabel(p.answer.conf) };
+      const html = o.mc
+        ? rich(JUDGE.answerChip, { ...vars, 이름: mcOf(o.mc).name })
+        : rich(JUDGE.answerChipNoMc, { ...vars, 종류: (JUDGE.answerTypes || {})[o.type] || "" });
+      return `<div class="jchip">${html}</div>`;
+    });
+    let n = 0;
+    const order = () => `style="--i:${n++}"`; // 나타나는 순서
+    el("demo-judge").innerHTML = `<div class="jrow">
+        <div class="jans ji" ${order()}>${chips.join("")}</div>
+        <div class="jarrow ji" ${order()}>→</div>
+        <div class="jrule ji" ${order()}>
+          <p class="jrule-h">${rich(JUDGE.ruleTitle)}</p>
+          <p class="jrule-note">${rich(JUDGE.ruleNote)}</p>
+          <ul>${(JUDGE.rules || []).map((r) => `<li class="ji" ${order()}><span class="jcheck">✓</span><span>${rich(r)}</span></li>`).join("")}</ul>
+        </div>
+        <div class="jarrow ji" ${order()}>→</div>
+        <div class="jresult ji" ${order()}>${rich(JUDGE.result)}</div>
+      </div>`;
   }
 
   function buildQuiz() {
-    el("demo-q0").innerHTML = questionHtml(D.data.items[0]);
-    el("demo-q1").innerHTML = questionHtml(D.data.items[1]);
-    const j = D.data.judgement;
-    const chips = D.data.items.map(
-      (it, i) => `<span class="eq-chip">${esc(it.display_no)} · ${esc(j.token_labels[i])} <code>${esc(j.tokens[i])}</code></span>`
-    );
-    const parts = [
-      chips[0],
-      `<span class="eq-op">×</span>`,
-      chips[1],
-      `<span class="eq-op">→</span>`,
-      `<span class="eq-cell">판정표 「${esc(j.state_label)}」 칸</span>`,
-      `<span class="eq-op">+</span>`,
-      `<span class="eq-cell">같은 카드 ${esc(j.card_id)}</span>`,
-      `<span class="eq-op">→</span>`,
-      `<span class="eq-result">${esc(j.state_label)} 판정</span>`,
-    ];
-    el("demo-eq").innerHTML = `<div class="eq-row">${parts.map((p, i) => p.replace(/^<span /, `<span style="--i:${i}" `)).join("")}</div>`;
-    D.built = true;
+    el("demo-q0").innerHTML = questionHtml(PROBLEMS[0]);
+    el("demo-q1").innerHTML = questionHtml(PROBLEMS[1]);
+    buildJudge();
   }
 
-  // 단계 i에서 문제 화면의 모양
+  // 슬라이드 i에서 문제 화면의 모양
   function quizState(i) {
     return {
       q: [
-        { show: i >= 0, center: i <= 2, picked: i >= 1, graded: i >= 2, reduced: i >= 6 },
-        { show: i >= 3, center: false, picked: i >= 4, graded: i >= 5, reduced: i >= 6 },
+        { show: i >= AT.q1_show, center: i < AT.q2_show, picked: i >= AT.q1_pick, graded: i >= AT.q1_grade, reduced: i >= AT.reduce },
+        { show: i >= AT.q2_show, center: false, picked: i >= AT.q2_pick, graded: i >= AT.q2_grade, reduced: i >= AT.reduce },
       ],
-      eq: i >= 7,
+      judge: i >= AT.judge,
     };
   }
 
@@ -1178,192 +832,289 @@ function josa(word, a, b) {
       const opt = box.querySelector(".dopt.chosen");
       const conf = box.querySelector(".dconf.chosen");
       if (anim && s.picked && !opt.classList.contains("on")) {
-        // 학생이 답 → 확신도 순서로 고르는 모습
-        later(() => opt.classList.add("on"), 700);
-        later(() => conf.classList.add("on"), 1700);
+        // 이번 슬라이드에서 고르는 문제만: 답 → 확신도 순서로 누르는 모습
+        later(() => {
+          opt.classList.add("on");
+          pulse(opt);
+        }, 700);
+        later(() => {
+          conf.classList.add("on");
+          pulse(conf);
+        }, 1700);
       } else {
         opt.classList.toggle("on", s.picked);
         conf.classList.toggle("on", s.picked);
       }
     });
-    el("demo-eq").classList.toggle("on", st.eq);
+    el("demo-judge").classList.toggle("on", st.judge);
   }
 
-  // ---------- 2. 그래프 탐색 · LLM 입력 ----------
-  const NODE_FONT = { size: 17, face: "Pretendard, sans-serif", multi: false };
-  const EDGE_FONT = { size: 14, face: "Pretendard, sans-serif", strokeWidth: 4, strokeColor: "#fff" };
+  /* =======================================================================
+   * 5. 그래프 (슬라이드 9~13) — data.js SLIDE_9.graph
+   * ======================================================================= */
+  // 노드 종류별 색 (범례 글자는 data.js SLIDE_9.legend)
+  const KIND = {
+    option: { bg: "#f3f4f6", border: "#4b5563" },
+    card: { bg: "#fee2e2", border: "#dc2626" },
+    concept: { bg: "#dbeafe", border: "#2563eb" },
+    resource: { bg: "#dcfce7", border: "#16a34a" },
+  };
+  const NARROW_GRAPH = 640; // 그래프 칸이 이보다 좁으면(휴대폰) 위→아래로 놓고 경로 밖 노드는 숨긴다
+  const FACE = "Pretendard, sans-serif";
+  const nodeFont = (color) => ({ size: 18, face: FACE, color, multi: "html", bold: { size: 19, face: FACE, color, mod: "bold" } });
+  const EDGE_FONT = { size: 16, face: FACE, strokeWidth: 4, strokeColor: "#fff" };
 
+  const onPath = (id) => {
+    const p = G.path;
+    return p.options.includes(id) || id === p.card || id === p.concept || p.resources.includes(id);
+  };
+
+  // 노드 글자: 굵은 첫 줄 + 둘째 줄 (비어 있으면 문제·오개념·교과서 쪽에서 자동으로 채운다)
+  function nodeLabel(n) {
+    let title = plain(n.title);
+    let desc = plain(n.desc);
+    if (n.kind === "option") {
+      const p = problemNo(n.problem);
+      const o = chosenOpt(p);
+      title = title || plain(SEARCH.optionNode, { 번호: p.no, 선지: CIRCLED[o.key] || o.key });
+      desc = desc || o.text;
+    } else if (n.kind === "card") {
+      const m = mcOf(n.id);
+      title = title || m.name;
+      desc = desc || m.desc;
+    } else if (n.kind === "resource" && !desc) {
+      const i = G.path.resources.indexOf(n.id);
+      const pg = (PAGES.pages || [])[i];
+      if (pg != null) desc = plain(FB.pageText || "{쪽}쪽", { 쪽: pg });
+    }
+    return desc ? `<b>${title}</b>\n${desc}` : `<b>${title}</b>`;
+  }
+
+  // st: dim(흐림) · lit(지금 찾음) · done(지나옴)
   function nodeStyle(kind, st) {
-    const c = KIND_COLOR[kind] || KIND_COLOR.concept;
+    const c = KIND[kind] || KIND.concept;
     if (st === "dim") {
-      return { color: { background: "#f5f5f5", border: "#d4d4d4" }, borderWidth: 1, font: { ...NODE_FONT, color: "#a3a3a3" }, shadow: false };
+      return { color: { background: "#f5f5f5", border: "#d4d4d4" }, borderWidth: 1, font: nodeFont("#a3a3a3"), shadow: false };
     }
     return {
       color: { background: c.bg, border: c.border },
       borderWidth: st === "lit" ? 4 : 2,
-      font: { ...NODE_FONT, color: "#111" },
+      font: nodeFont("#111"),
       shadow: st === "lit" ? { enabled: true, color: c.border, size: 18, x: 0, y: 0 } : false,
     };
   }
 
   function edgeStyle(st) {
-    if (st === "lit") return { color: { color: "#f59e0b" }, width: 4, font: { ...EDGE_FONT, color: "#b45309" } };
-    if (st === "done") return { color: { color: "#9ca3af" }, width: 2, font: { ...EDGE_FONT, color: "#6b7280" } };
-    return { color: { color: "#e5e5e5" }, width: 1, font: { ...EDGE_FONT, color: "#c4c4c4" } };
+    // background: 글자 뒤로 선이 비쳐 "관련·개념"처럼 보이지 않게 그래프 바탕색을 깐다
+    if (st === "lit") return { color: { color: "#f59e0b" }, width: 4, font: { ...EDGE_FONT, color: "#b45309", background: "#fcfcfd" } };
+    if (st === "done") return { color: { color: "#9ca3af" }, width: 2, font: { ...EDGE_FONT, color: "#6b7280", background: "#fcfcfd" } };
+    // 흐린 선은 글자를 숨긴다(경로 위 글자와 겹치지 않게)
+    return { color: { color: "#e5e5e5" }, width: 1, font: { ...EDGE_FONT, color: "rgba(0,0,0,0)", strokeWidth: 0 } };
   }
 
-  function positions() {
-    const p = D.data.graph.path;
+  // 노드 위치
+  //   넓은 화면: 왼쪽부터 선지 → 오개념 → 개념 → 교과서, 경로 밖 노드는 위아래 (노드에 x, y가 있으면 그 자리)
+  //   좁은 화면: 위부터 선지 → 오개념 → 개념 → 교과서, 경로 밖 노드는 숨김
+  //   가로로 넓게 벌리면 그래프 전체가 작게 줄어드니 간격은 좁게 둔다.
+  function positions(narrow) {
+    const p = G.path;
     const pos = {};
-    p.options.forEach((id, i) => (pos[id] = { x: -450, y: (i - (p.options.length - 1) / 2) * 150 }));
-    pos[p.card] = { x: -160, y: 0 };
-    pos[p.concept] = { x: 120, y: 0 };
-    p.resources.forEach((id, i) => (pos[id] = { x: 350, y: (i - (p.resources.length - 1) / 2) * 160 }));
-    const conceptY = [-200, 200, -330, 330];
-    const cardY = [210, -210, 340, -340];
+    const spread = (ids, gap, put) => ids.forEach((id, i) => (pos[id] = put((i - (ids.length - 1) / 2) * gap)));
+    if (narrow) {
+      spread(p.options, 190, (x) => ({ x, y: -330 }));
+      pos[p.card] = { x: 0, y: -150 };
+      pos[p.concept] = { x: 0, y: 20 };
+      spread(p.resources, 220, (x) => ({ x, y: 175 }));
+      G.nodes.forEach((n) => (pos[n.id] = pos[n.id] || { x: 0, y: 0 }));
+      return pos;
+    }
+    spread(p.options, 190, (y) => ({ x: -390, y }));
+    pos[p.card] = { x: -140, y: 0 };
+    pos[p.concept] = { x: 135, y: 0 };
+    spread(p.resources, 190, (y) => ({ x: 345, y }));
+    const conceptY = [-230, 230, -360, 360];
+    const cardY = [250, -250, 380, -380];
     let ci = 0;
     let ki = 0;
-    D.data.graph.nodes.forEach((n) => {
+    let ri = 0;
+    G.nodes.forEach((n) => {
+      if (n.x != null && n.y != null) {
+        pos[n.id] = { x: n.x, y: n.y };
+        return;
+      }
       if (pos[n.id]) return;
-      if (n.kind === "card") pos[n.id] = { x: -160, y: cardY[ki++ % cardY.length] };
-      else if (n.kind === "resource") pos[n.id] = { x: 350, y: 250 + 120 * ci++ };
-      else pos[n.id] = { x: 120, y: conceptY[ci++ % conceptY.length] };
+      if (n.kind === "card") pos[n.id] = { x: -140, y: cardY[ki++ % cardY.length] };
+      else if (n.kind === "resource") pos[n.id] = { x: 345, y: 280 + 130 * ri++ };
+      else pos[n.id] = { x: 135, y: conceptY[ci++ % conceptY.length] };
     });
     return pos;
   }
 
-  // 단계 i에서 노드·선 상태(dim / lit 지금 찾음 / done 지나옴)
+  // 슬라이드 i에서 노드·선 상태
   function graphState(i) {
-    const p = D.data.graph.path;
+    const p = G.path;
     const nodes = {};
     const edges = {};
     const set = (obj, ids, lit) => ids.forEach((id) => (obj[id] = lit ? "lit" : "done"));
-    const optEdges = D.edgeIds.opt;
-    if (i >= 9) set(nodes, p.options, i === 9);
-    if (i >= 10) {
-      set(nodes, [p.card], i === 10);
-      set(edges, optEdges, i === 10);
+    if (i >= AT.g_options) set(nodes, p.options, i === AT.g_options);
+    if (i >= AT.g_card) {
+      set(nodes, [p.card], i === AT.g_card);
+      set(edges, S.edgeIds.opt, i === AT.g_card);
     }
-    if (i >= 11) {
-      set(nodes, [p.concept], i === 11);
-      set(edges, D.edgeIds.card, i === 11);
+    if (i >= AT.g_concept) {
+      set(nodes, [p.concept], i === AT.g_concept);
+      set(edges, S.edgeIds.card, i === AT.g_concept);
     }
-    if (i >= 12) {
-      set(nodes, p.resources, i === 12);
-      set(edges, D.edgeIds.res, i === 12);
+    if (i >= AT.g_pages) {
+      set(nodes, p.resources, i === AT.g_pages);
+      set(edges, S.edgeIds.res, i === AT.g_pages);
     }
     return { nodes, edges };
   }
 
-  function ensureGraph() {
-    if (D.net) return;
-    const g = D.data.graph;
-    const pos = positions();
-    const kindOf = {};
-    g.nodes.forEach((n) => (kindOf[n.id] = n.kind));
-    D.kindOf = kindOf;
-    D.nodes = new vis.DataSet(
-      g.nodes.map((n) => ({
+  function buildLegend() {
+    const L = SEARCH.legend || {};
+    el("demo-legend").innerHTML =
+      Object.entries(KIND)
+        .map(([k, c]) => `<span><i style="background:${c.bg};border-color:${c.border}"></i>${rich(L[k] || k)}</span>`)
+        .join("") + `<span><i class="trail"></i>${rich(L.trail || "")}</span>`;
+  }
+
+  function buildGraph(narrow) {
+    const p = G.path;
+    const pos = positions(narrow);
+    S.narrow = narrow;
+    S.nodes = new vis.DataSet(
+      G.nodes.map((n) => ({
         id: n.id,
-        label: n.label,
+        label: nodeLabel(n),
         x: pos[n.id].x,
         y: pos[n.id].y,
+        hidden: narrow && !onPath(n.id),
         fixed: true,
         shape: "box",
         margin: 10,
-        widthConstraint: { maximum: n.kind === "card" ? 200 : 160 },
+        widthConstraint: { maximum: n.kind === "card" ? 200 : 170 },
         ...nodeStyle(n.kind, "dim"),
       }))
     );
-    const p = g.path;
-    D.edgeIds = { opt: [], card: [], res: [] };
-    D.edges = new vis.DataSet(
-      g.edges.map((e, i) => {
+    S.edgeIds = { opt: [], card: [], res: [] }; // 경로 위의 선
+    S.edges = new vis.DataSet(
+      G.edges.map((e, i) => {
         const id = `de${i}`;
-        if (p.options.includes(e.from) && e.to === p.card) D.edgeIds.opt.push(id);
-        if (e.from === p.card && e.to === p.concept) D.edgeIds.card.push(id);
-        if (e.from === p.concept && p.resources.includes(e.to)) D.edgeIds.res.push(id);
-        return { id, from: e.from, to: e.to, label: e.rel_label, arrows: "to", smooth: false, ...edgeStyle("dim") };
+        if (p.options.includes(e.from) && e.to === p.card) S.edgeIds.opt.push(id);
+        if (e.from === p.card && e.to === p.concept) S.edgeIds.card.push(id);
+        if (e.from === p.concept && p.resources.includes(e.to)) S.edgeIds.res.push(id);
+        return { id, from: e.from, to: e.to, label: e.label || undefined, arrows: "to", smooth: false, ...edgeStyle("dim") };
       })
     );
-    D.net = new vis.Network(
+    S.net = new vis.Network(
       el("demo-graph"),
-      { nodes: D.nodes, edges: D.edges },
+      { nodes: S.nodes, edges: S.edges },
       {
         physics: { enabled: false },
         layout: { improvedLayout: false },
         interaction: { dragNodes: false, dragView: false, zoomView: false, selectable: false, hover: false },
       }
     );
-    D.net.fit({ animation: false, padding: 24 });
+    S.net.fit({ animation: false, padding: 24 });
+  }
+
+  // 그래프를 칸 크기에 맞춘다. 넓은↔좁은 배치가 바뀌면 새로 그린다. (그래프 칸이 보일 때만)
+  function syncGraph(refit) {
+    const box = el("demo-graph");
+    if (!box.offsetWidth) return false;
+    if (!window.vis) {
+      showError("그래프 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 새로고침(F5)하세요.");
+      return false;
+    }
+    const narrow = box.clientWidth < NARROW_GRAPH;
+    if (S.net && narrow !== S.narrow) {
+      S.net.destroy();
+      S.net = null;
+    }
+    if (!S.net) buildGraph(narrow);
+    else if (refit) {
+      S.net.setSize("100%", "100%");
+      S.net.fit({ animation: false, padding: 24 });
+    }
+    return true;
   }
 
   function paintGraph(i) {
     const st = graphState(i);
-    D.nodes.update(D.data.graph.nodes.map((n) => ({ id: n.id, ...nodeStyle(n.kind, st.nodes[n.id] || "dim") })));
-    D.edges.update(D.edges.getIds().map((id) => ({ id, ...edgeStyle(st.edges[id] || "dim") })));
+    S.nodes.update(G.nodes.map((n) => ({ id: n.id, ...nodeStyle(n.kind, st.nodes[n.id] || "dim") })));
+    S.edges.update(S.edges.getIds().map((id) => ({ id, ...edgeStyle(st.edges[id] || "dim") })));
   }
 
-  function srcOf(key) {
-    return SRC[key] || "concept";
-  }
+  /* =======================================================================
+   * 6. LLM 입력 상자 (슬라이드 9~14) — data.js SLIDE_9.llmInput, SLIDE_13.pages
+   * ======================================================================= */
+  // 칸이 채워지는 슬라이드: 문항(item) 9 · 오개념(card) 11 · 개념(concept) 12
+  const FILL_AT = () => ({ item: AT.search, card: AT.g_card, concept: AT.g_concept });
 
   function buildLlm() {
-    const inp = D.data.llm_input;
-    const keys = Object.keys(inp);
-    const lines = keys.map(
-      (k, i) =>
-        `<span class="jl" data-k="${esc(k)}"><span class="jk">"${esc(k)}"</span>: <span class="jv empty">▢</span>${i < keys.length - 1 ? "," : ""}</span>`
-    );
-    el("demo-llm").innerHTML = `{${lines.join("")}}<span class="demo-sent">→ LLM으로 보냄</span>`;
+    el("t-graph").innerHTML = rich(SEARCH.graphTitle);
+    el("t-llm").innerHTML = rich(SEARCH.llmTitle);
+    el("t-direct").innerHTML = rich(SEARCH.directTitle);
+    el("demo-llm").innerHTML =
+      LLM.map((r, i) => `<div class="jl" data-i="${i}"><span class="jk">${rich(r.label)}</span><span class="jv empty">▢</span></div>`).join("") +
+      `<p class="demo-sent">${rich(slide("send").sentLabel)}</p>`;
     el("demo-direct").innerHTML = "";
+    S.pagesOn = false;
   }
 
-  function setLine(k, filled, flash) {
-    const line = el("demo-llm").querySelector(`.jl[data-k="${k}"]`);
+  const lineEl = (i) => el("demo-llm").querySelector(`.jl[data-i="${i}"]`);
+  // LLM 입력 칸 값 ({이름표}를 채운 뒤의 글자)
+  const llmValue = (i) => lines(LLM[i].value).map((l) => plain(l)).join("\n");
+
+  function setLine(i, filled, doFlash) {
+    const line = lineEl(i);
     if (!line) return;
     const v = line.querySelector(".jv");
-    if (filled) {
-      v.textContent = JSON.stringify(D.data.llm_input[k]);
-      v.classList.remove("empty");
-    } else {
-      v.textContent = "▢";
-      v.classList.add("empty");
-    }
-    if (flash) {
-      line.classList.remove("flash");
-      void line.offsetWidth;
-      line.classList.add("flash");
-    }
+    v.textContent = filled ? llmValue(i) : "▢";
+    v.classList.toggle("empty", !filled);
+    if (doFlash) flash(line);
   }
 
-  function setPages(filled) {
-    el("demo-direct").innerHTML = filled
-      ? D.data.server_pages.map((p) => `<span class="demo-page">교과서 ${esc(p)}쪽</span>`).join("")
-      : "";
+  // 교과서 쪽 칸: 상태가 바뀔 때만 다시 그린다(슬라이드를 넘길 때 다시 움직이지 않게)
+  function setPages(filled, anim) {
+    if (S.pagesOn === filled) return;
+    S.pagesOn = filled;
+    const box = el("demo-direct");
+    box.innerHTML = filled ? (PAGES.pages || []).map((p) => `<span class="demo-page">${rich(PAGES.pageChip, { 쪽: p })}</span>`).join("") : "";
+    if (filled && anim) box.querySelectorAll(".demo-page").forEach(pulse);
   }
 
-  function nodeScreen(id) {
-    const p = D.net.getPositions([id])[id];
-    const dom = D.net.canvasToDOM(p);
+  // 노드의 페이지 좌표(스크롤 포함)
+  function nodePage(id) {
+    const p = S.net.getPositions([id])[id];
+    const dom = S.net.canvasToDOM(p);
     const r = el("demo-graph").getBoundingClientRect();
-    return { x: r.left + dom.x, y: r.top + dom.y };
+    return { x: r.left + window.scrollX + dom.x, y: r.top + window.scrollY + dom.y };
   }
 
-  // 그래프에서 찾은 노드의 내용이 LLM 입력 칸으로 날아가는 모습
+  // 그래프에서 찾은 노드의 내용이 LLM 입력 칸으로 날아가는 모습 (화면 밖으로 넘치지 않게 가로 위치를 맞춘다)
   function fly(fromId, target, text, delay, done) {
     later(() => {
-      const s = nodeScreen(fromId);
-      const t = target.getBoundingClientRect();
+      const s = nodePage(fromId);
+      const tr = target.getBoundingClientRect();
       const f = document.createElement("div");
       f.className = "demo-fly";
       f.textContent = text;
-      f.style.left = `${s.x - 40}px`;
-      f.style.top = `${s.y - 14}px`;
       document.body.appendChild(f);
+      const minX = window.scrollX + 4;
+      const maxX = window.scrollX + document.documentElement.clientWidth - f.offsetWidth - 4;
+      const clampX = (x) => Math.max(minX, Math.min(maxX, x));
+      const x0 = clampX(s.x - 40);
+      const y0 = s.y - 14;
+      const x1 = clampX(tr.left + window.scrollX);
+      const y1 = tr.top + window.scrollY;
+      f.style.left = `${x0}px`;
+      f.style.top = `${y0}px`;
       requestAnimationFrame(() =>
         requestAnimationFrame(() => {
-          f.style.transform = `translate(${t.left - s.x + 40}px, ${t.top - s.y + 14}px)`;
+          f.style.transform = `translate(${x1 - x0}px, ${y1 - y0}px)`;
           f.style.opacity = "0.25";
         })
       );
@@ -1376,67 +1127,152 @@ function josa(word, a, b) {
 
   function applySearch(i, anim) {
     paintGraph(i);
-    el("demo-llm").classList.toggle("sent", i >= SENT_STEP);
-    const keys = Object.keys(D.data.llm_input);
-    const p = D.data.graph.path;
+    el("demo-llm").classList.toggle("sent", i >= AT.send);
+    const fillAt = FILL_AT();
+    const p = G.path;
     const fromNode = { card: p.card, concept: p.concept };
     let k = 0;
-    keys.forEach((key) => {
-      const at = FILL_STEP[srcOf(key)];
-      const filled = i >= at;
+    LLM.forEach((r, idx) => {
+      const at = fillAt[r.from] ?? AT.search;
       if (anim && i === at) {
-        setLine(key, false, false);
-        const line = el("demo-llm").querySelector(`.jl[data-k="${key}"]`);
-        const src = srcOf(key);
-        if (src === "item") {
-          later(() => setLine(key, true, true), 250 + 250 * k++);
+        setLine(idx, false, false);
+        if (fromNode[r.from]) {
+          fly(fromNode[r.from], lineEl(idx), llmValue(idx).split("\n")[0], 300 + 650 * k++, () => setLine(idx, true, true));
         } else {
-          const v = D.data.llm_input[key];
-          fly(fromNode[src], line, typeof v === "string" ? v : JSON.stringify(v), 300 + 650 * k++, () => setLine(key, true, true));
+          later(() => setLine(idx, true, true), 250 + 250 * k++);
         }
       } else {
-        setLine(key, filled, false);
+        setLine(idx, i >= at, false);
       }
     });
-    if (anim && i === PAGES_STEP) {
+    const pages = PAGES.pages || [];
+    if (anim && i === AT.g_pages) {
       setPages(false);
       let left = p.resources.length;
+      if (!left) setPages(true, true);
       p.resources.forEach((rid, n) =>
-        fly(rid, el("demo-direct"), `교과서 ${D.data.server_pages[n] || ""}쪽`, 300 + 450 * n, () => {
+        fly(rid, el("demo-direct"), plain(PAGES.pageChip, { 쪽: pages[n] || "" }), 300 + 450 * n, () => {
           left -= 1;
-          if (!left) setPages(true);
+          if (!left) setPages(true, true);
         })
       );
     } else {
-      setPages(i >= PAGES_STEP);
+      setPages(i >= AT.g_pages, false);
     }
   }
 
-  // ---------- 3. 피드백 ----------
+  /* =======================================================================
+   * 7. 피드백 (슬라이드 15) — data.js SLIDE_15
+   * ======================================================================= */
+  // [가, 나] → 리스트 모양, ‘가’·**가** → 굵게 (치는 도중의 짝 없는 ** 는 숨긴다)
+  function fmtFb(s) {
+    return esc(s)
+      .replace(/\[([^\]]+)\]/g, '<span class="fb-list">[$1]</span>')
+      .replace(/‘([^’]+)’/g, "<b>‘$1’</b>")
+      .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
+      .replace(/\*\*/g, "");
+  }
+
   function renderFeedback(anim) {
-    const fb = D.data.feedback;
-    const it = D.data.items.find((x) => x.display_no === fb.display_no) || D.data.items[1];
-    el("demo-fb").innerHTML = `<article class="dq show graded demo-fbcard">
-        ${questionHtml(it, { graded: true, mark: "오개념을 확인해 봐요" })}
-        <p class="demo-fbtext" id="demo-fbtext"></p>
-        <p class="demo-server">교과서 ${esc(pagesText())}쪽</p>
-      </article>`;
-    const box = el("demo-fbtext");
+    const p = problemNo(FB.problem || 2);
+    // 문장 안의 {이름표}는 먼저 채운다(굵게·리스트 모양은 fmtFb가 그 뒤에 입힌다)
+    const parts = (FB.parts || []).map((pt) => ({ label: pt.label, text: fill(pt.text, {}, same) }));
+    const last = parts.length - 1;
+    const pages = (PAGES.pages || []).map((pg) => rich(FB.pageText, { 쪽: pg })).join(esc(FB.pageJoin ?? " · "));
+    el("demo-fb").innerHTML = `<div class="fb-cols">
+        <article class="dq show graded fb-q">${questionHtml(p, { graded: true, mark: FB.mark })}</article>
+        <section class="fb-panel">
+          <p class="fb-h">${rich(FB.panelTitle)}</p>
+          <ol class="fb-parts">${parts
+            .map(
+              (pt, i) => `<li class="fb-part${i === last ? " key" : ""}">
+                <p class="fb-label"><span class="n">${i + 1}</span>${rich(pt.label)}</p>
+                <p class="fb-text"><span class="ghost">${fmtFb(pt.text)}</span><span class="typed"></span></p>
+              </li>`
+            )
+            .join("")}</ol>
+          <p class="fb-pages"><span>${rich(FB.pagesLabel)}</span>${pages}</p>
+        </section>
+      </div>`;
+    const rows = [...el("demo-fb").querySelectorAll(".fb-part")];
+    const pagesLine = el("demo-fb").querySelector(".fb-pages");
     if (!anim) {
-      box.textContent = fb.text;
+      rows.forEach((r, i) => {
+        r.classList.add("on");
+        r.querySelector(".typed").innerHTML = fmtFb(parts[i].text);
+      });
+      pagesLine.classList.add("on");
       return;
     }
-    const text = fb.text;
-    for (let n = 1; n <= text.length; n += 1) later(() => (box.textContent = text.slice(0, n)), 400 + n * 22);
+    // 한 문장씩 타자 치듯 (SPEED = 글자 하나당 ms)
+    const SPEED = 24;
+    let t = 500;
+    parts.forEach((pt, i) => {
+      const box = rows[i].querySelector(".typed");
+      later(() => rows[i].classList.add("on"), t);
+      for (let n = 1; n <= pt.text.length; n += 1) later(() => (box.innerHTML = fmtFb(pt.text.slice(0, n))), t + 200 + n * SPEED);
+      t += 200 + pt.text.length * SPEED + 450;
+    });
+    later(() => pagesLine.classList.add("on"), t);
   }
 
-  // ---------- 단계 이동 ----------
+  /* =======================================================================
+   * 8. 휴대폰(좁은 화면): 슬라이드마다 볼 곳으로 화면을 옮긴다
+   *    [보여 줄 곳, 몇 ms 뒤에, 맞출 위치(start = 위에 맞춤, 없으면 가장 가까운 쪽)]
+   *    "top" = 페이지 맨 위. 컴퓨터처럼 넓은 화면에서는 움직이지 않는다.
+   * ======================================================================= */
+  const SMALL = window.matchMedia("(max-width: 900px)");
+  const FOCUS = {
+    q1_show: [["top", 0]],
+    q1_pick: [["#demo-q0 .dq-conf", 0]],
+    q1_grade: [["#demo-q0 .dopt.chosen", 0]],
+    q2_show: [["#demo-q1", 0, "start"]],
+    q2_pick: [["#demo-q1 .dq-conf", 0]],
+    q2_grade: [["#demo-q1 .dopt.chosen", 0]],
+    reduce: [["top", 0]],
+    judge: [["#demo-judge", 500]],
+    search: [["top", 0], ["#demo-llm", 1200]],
+    g_options: [["#demo-graph", 0]],
+    g_card: [["#demo-graph", 0], ["#demo-llm", 900]],
+    g_concept: [["#demo-graph", 0], ["#demo-llm", 900]],
+    g_pages: [["#demo-graph", 0], ["#demo-direct", 900]],
+    send: [["#demo-llm", 0]],
+    feedback: [["#demo-fb .fb-panel", 300, "start"]],
+  };
+
+  function focusStep(i, anim) {
+    if (!SMALL.matches) return;
+    // 아래에 고정된 설명 칸에 가리지 않게 여백을 둔다
+    document.documentElement.style.scrollPaddingBottom = `${el("demo-explain").offsetHeight + 12}px`;
+    document.documentElement.style.scrollPaddingTop = "8px";
+    const plan = FOCUS[STEPS[i].key] || [];
+    const go = ([sel, , block], behavior) => {
+      if (sel === "top") return window.scrollTo({ top: 0, behavior });
+      const t = document.querySelector(sel);
+      if (t) t.scrollIntoView({ block: block || "nearest", behavior });
+    };
+    if (!anim) {
+      if (plan.length) go(plan[plan.length - 1], "auto");
+      return;
+    }
+    plan.forEach((f) => (f[1] ? later(() => go(f, "smooth"), f[1]) : go(f, "smooth")));
+  }
+
+  /* =======================================================================
+   * 9. 슬라이드 이동
+   * ======================================================================= */
   function render(i, anim) {
     cancelAll();
     const phase = STEPS[i].phase;
+    const wasSearch = S.step >= 0 && STEPS[S.step].phase === "search";
     el("demo-quiz").hidden = phase !== "quiz";
     el("demo-search").hidden = phase !== "search";
     el("demo-fb").hidden = phase !== "fb";
+    S.step = i;
+    el("demo-progress").textContent = `${i + 1} / ${STEPS.length}`;
+    el("demo-text").innerHTML = rich(D.slides[i].narration);
+    el("demo-prev").disabled = i === 0;
+    el("demo-next").disabled = i === STEPS.length - 1;
     if (phase === "quiz") {
       if (anim) {
         instant(() => applyQuiz(quizState(i - 1), false));
@@ -1445,75 +1281,81 @@ function josa(word, a, b) {
         instant(() => applyQuiz(quizState(i), false));
       }
     } else if (phase === "search") {
-      ensureGraph();
-      if (!el("demo-llm").innerHTML) buildLlm();
+      if (!syncGraph(!wasSearch)) return;
       if (anim && i > 0 && STEPS[i - 1].phase === "search") applySearch(i - 1, false);
       applySearch(i, anim);
     } else {
       renderFeedback(anim);
     }
-    D.step = i;
-    el("demo-progress").textContent = `${i + 1} / ${STEPS.length}`;
-    el("demo-text").textContent = STEPS[i].text();
+    focusStep(i, anim);
   }
 
-  function next() {
-    if (D.step < STEPS.length - 1) render(D.step + 1, true);
+  const next = () => S.step >= 0 && S.step < STEPS.length - 1 && render(S.step + 1, true);
+  const prev = () => S.step > 0 && render(S.step - 1, false);
+
+  // 주소 끝에 ?step=9 를 붙이면 슬라이드 9부터 연다
+  function startStep() {
+    const m = /[?&#]step=(\d+)/.exec(location.search + location.hash);
+    const n = m ? parseInt(m[1], 10) : 1;
+    return Math.min(Math.max(n, 1), STEPS.length) - 1;
   }
 
-  function prev() {
-    if (D.step > 0) render(D.step - 1, false);
-  }
-
-  async function openDemo() {
-    show("demo");
-    $("page-title").textContent = "판정 시연 · I-LDEL 오개념";
-    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-    if (!D.data) {
-      el("demo-text").textContent = "불러오는 중…";
-      // 한 파일 HTML(docs/index.html, tools/build_demo_html.py)은 데이터를 window.DEMO_DATA로 품고 있다
-      D.data = window.DEMO_DATA || (await fetch("/api/demo-case").then((r) => r.json()));
-    }
+  function openDemo() {
+    document.title = plain(C.title);
+    el("page-title").innerHTML = rich(C.title);
+    el("hint-keys").innerHTML = rich(C.keysHint);
+    el("hint-tap").innerHTML = rich(C.tapHint);
+    el("demo-prev").innerHTML = rich(C.prevButton);
+    el("demo-next").innerHTML = rich(C.nextButton);
     buildQuiz();
-    el("demo-llm").innerHTML = "";
+    buildLlm();
+    buildLegend();
     instant(() => applyQuiz(quizState(-1), false));
-    D.step = -1;
-    render(0, true);
+    const s = startStep();
+    render(s, s === 0);
   }
 
-  function leaveDemo() {
-    cancelAll();
-    D.step = -1;
-    if (D.net) {
-      D.net.destroy();
-      D.net = null;
-    }
-  }
-
+  // 키보드: Enter · → · PageDown 다음 / Backspace · ← · PageUp 이전 (발표용 리모컨도 됨)
   document.addEventListener("keydown", (e) => {
-    if (state.phase !== "demo" || D.step < 0) return;
-    if (e.key === "Enter") {
+    if (S.step < 0) return;
+    if (["Enter", "ArrowRight", "PageDown"].includes(e.key)) {
       e.preventDefault();
       next();
-    } else if (e.key === "Backspace") {
+    } else if (["Backspace", "ArrowLeft", "PageUp"].includes(e.key)) {
       e.preventDefault();
       prev();
     }
   });
 
-  window.addEventListener("resize", () => {
-    if (D.net) D.net.fit({ animation: false, padding: 24 });
+  // 클릭·탭: 화면 어디를 눌러도 다음 (버튼은 각자 동작)
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("button, a, input, textarea, select")) return;
+    next();
+  });
+  el("demo-prev").addEventListener("click", (e) => {
+    e.currentTarget.blur();
+    prev();
+  });
+  el("demo-next").addEventListener("click", (e) => {
+    e.currentTarget.blur();
+    next();
   });
 
-  window.openDemo = openDemo;
-  window.leaveDemo = leaveDemo;
-  const btn = el("open-demo");
-  if (btn) btn.onclick = openDemo;
-})();
+  // 창 너비가 바뀌면(휴대폰 회전 등) 그래프를 다시 맞춘다. 높이만 바뀌는 것(휴대폰 주소창)은 무시
+  window.addEventListener("resize", () => {
+    if (window.innerWidth === S.vw) return;
+    S.vw = window.innerWidth;
+    if (S.step >= 0 && STEPS[S.step].phase === "search" && syncGraph(true)) paintGraph(S.step);
+  });
 
-  </script>
-  <script>
-openDemo();
+  try {
+    S.vw = window.innerWidth;
+    openDemo();
+  } catch (err) {
+    console.error(err);
+    showError(`화면을 그리다 멈췄습니다: ${err.message} — data.js에서 방금 고친 곳의 이름표·괄호를 확인하세요.`);
+  }
+})();
   </script>
 </body>
 </html>
