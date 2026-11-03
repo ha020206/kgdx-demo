@@ -218,20 +218,35 @@ main#demo-view {
 }
 .dopt-text { flex: 1; min-width: 0; }
 .dradio {
+  position: relative;
   flex: 0 0 auto;
   width: 14px;
   height: 14px;
   border: 1.5px solid #bbb;
   border-radius: 50%;
   background: #fff;
-  transition: border-color 0.25s ease, background 0.25s ease;
+  transition: border-color 0.25s ease;
 }
+/* 라디오 안쪽 점: 고르면 가운데서 커지며 채워진다 */
+.dradio::after {
+  content: "";
+  position: absolute;
+  inset: 2.5px;
+  border-radius: 50%;
+  background: var(--pick);
+  transform: scale(0);
+  transition: transform 0.25s ease, background-color 0.25s ease;
+}
+/* 확신도 체크는 조금 더 천천히 칠해진다 */
+.dconf .dradio, .dconf .dradio::after { transition-duration: 0.4s; }
 /* 학생이 고름 (슬라이드 2·5) : 무채색 */
 .dopt.on { border-color: var(--pick); background: var(--pick-bg); box-shadow: 0 0 0 1px var(--pick); }
-.on > .dradio { border-color: var(--pick); background: radial-gradient(circle, var(--pick) 42%, #fff 48%); }
+.on > .dradio { border-color: var(--pick); }
+.on > .dradio::after { transform: scale(1); }
 /* 채점 (슬라이드 3·6) : 고른 오답 = 강한 빨강 */
 .dq.graded .dopt.chosen:not(.correct) { background: var(--wrong-bg); border-color: var(--wrong); box-shadow: 0 0 0 1.5px var(--wrong); }
-.dq.graded .dopt.chosen:not(.correct) > .dradio { border-color: var(--wrong); background: radial-gradient(circle, var(--wrong) 42%, #fff 48%); }
+.dq.graded .dopt.chosen:not(.correct) > .dradio { border-color: var(--wrong); }
+.dq.graded .dopt.chosen:not(.correct) > .dradio::after { background: var(--wrong); }
 .dq.graded .dopt.chosen:not(.correct) .dopt-text { color: var(--wrong-ink); font-weight: 700; }
 /* 채점 : 정답 = 약한 초록(테두리·글자만) */
 .dq.graded .dopt.correct { border-color: var(--right-line); }
@@ -276,7 +291,7 @@ main#demo-view {
   padding: 2px 4px;
   overflow: hidden;
   white-space: nowrap;
-  transition: max-width 0.45s ease, opacity 0.35s ease, padding 0.45s ease;
+  transition: max-width 0.45s ease, opacity 0.35s ease, padding 0.45s ease, color 0.4s ease;
 }
 .dconf.on { color: var(--ink); font-weight: 700; }
 .dsep {
@@ -375,10 +390,13 @@ main#demo-view {
 .jk { color: #888; font-weight: 700; word-break: keep-all; }
 .jv { color: #111; white-space: pre-wrap; overflow-wrap: anywhere; transition: opacity 0.45s ease, transform 0.45s ease; }
 .jl.enter .jv { opacity: 0; transform: translateX(-6px); }
-.jv.empty { color: #ccc; }
-.demo-sent { display: none; margin: 8px 8px 0; color: var(--right); font-weight: 700; }
+/* 빈칸: 글자는 투명하게 자리만 잡고, 그 위에 ▢ 표시 */
+.jv.empty { position: relative; color: transparent; }
+.jv.empty::before { content: "▢"; position: absolute; left: 0; top: 0; color: #ccc; }
+/* "→ LLM으로 보냄": 자리는 처음부터 비워 두고(상자 높이가 바뀌지 않게) 보낼 때 글자만 나타난다 */
+.demo-sent { margin: 8px 8px 0; color: var(--right); font-weight: 700; visibility: hidden; opacity: 0; transition: opacity 0.4s ease; }
 .demo-llm.sent { border-color: var(--right); }
-.demo-llm.sent .demo-sent { display: block; }
+.demo-llm.sent .demo-sent { visibility: visible; opacity: 1; }
 /* 오른쪽 아래 : LLM에 넣지 않고 화면에 바로 붙이는 교과서 쪽 */
 .demo-direct { display: flex; flex-wrap: wrap; gap: 8px; min-height: 46px; padding: 10px 12px; border: 1px dashed #d4d4d4; border-radius: 10px; }
 .demo-page { padding: 3px 10px; border: 1px solid #d4d4d8; border-radius: 6px; background: #fff; color: #333; font-size: 13px; font-weight: 600; transition: opacity 0.45s ease, transform 0.45s ease, background-color 0.5s ease; }
@@ -393,15 +411,17 @@ main#demo-view {
 .fb-q .dtag { display: none; }
 .fb-panel { padding: 18px 20px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
 .fb-h { margin: 0 0 14px; color: #999; font-size: 13px; font-weight: 700; }
-/* 문단 → 문단 → 문단 → 교과서 쪽 줄 순서로 차례로 나타남(--i = 순서, 0.7초 간격) */
+/* 문단 → 문단 → 문단 → 교과서 쪽 줄 순서로 차례로 나타남(--i = 순서, 판정 상자와 같은 0.25초 간격) */
 .fb-para, .fb-pages {
   opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.5s ease, transform 0.5s ease;
-  transition-delay: calc(var(--i, 0) * 0.7s + 0.15s);
+  transform: translateY(6px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  transition-delay: calc(var(--i, 0) * 0.25s + 0.1s);
 }
 .fb-body.on .fb-para, .fb-body.on .fb-pages { opacity: 1; transform: none; }
-.fb-para + .fb-para { margin-top: 16px; }
+/* 세 문단 모두 같은 여백(마지막만 초록 바탕) → 문단 사이 간격이 같아 보이게 */
+.fb-para { padding: 10px 14px; border: 1px solid transparent; border-radius: 10px; }
+.fb-para + .fb-para { margin-top: 4px; }
 /* 문단 소제목: 번호 동그라미 + 이름 */
 .fb-label { display: flex; align-items: center; gap: 7px; margin: 0 0 4px; color: #555; font-size: 13px; font-weight: 800; }
 .fb-label .n {
@@ -417,10 +437,10 @@ main#demo-view {
 .fb-text { margin: 0; font-size: 17px; line-height: 1.7; }
 .fb-text b { font-weight: 700; }
 /* 마지막 문단(정개념) 강조: 옅은 초록 상자 */
-.fb-para.key { padding: 12px 14px; border: 1px solid #c7ebd2; border-radius: 10px; background: var(--right-bg); }
+.fb-para.key { border-color: #c7ebd2; background: var(--right-bg); }
 .fb-para.key .fb-label { color: var(--right); }
 .fb-para.key .fb-label .n { background: var(--right); }
-.fb-pages { margin: 18px 0 0; padding-top: 12px; border-top: 1px solid var(--line); color: #333; font-size: 15px; }
+.fb-pages { margin: 14px 14px 0; padding-top: 12px; border-top: 1px solid var(--line); color: #333; font-size: 15px; }
 .fb-pages span { margin-right: 10px; color: #888; font-size: 13px; font-weight: 700; }
 
 /* =========================================================================
@@ -1115,7 +1135,7 @@ main#demo-view {
     const line = lineEl(i);
     if (!line) return;
     const v = line.querySelector(".jv");
-    v.textContent = filled ? llmValue(i) : "▢";
+    v.textContent = llmValue(i); // 빈칸일 때도 글자는 넣어 두고 숨긴다(채워질 때 상자 높이가 바뀌지 않게)
     v.classList.toggle("empty", !filled);
     line.classList.toggle("new", filled && isNew);
   }
@@ -1126,15 +1146,17 @@ main#demo-view {
     el("demo-direct").innerHTML = filled ? (PAGES.pages || []).map((p) => `<span class="${cls}">${rich(PAGES.pageChip, { 쪽: p })}</span>`).join("") : "";
   }
 
-  // 나타나기: .enter(숨김)를 붙였다가 ms 뒤에 떼면 CSS transition으로 스르륵 나타난다
-  function enter(node, ms) {
+  // 나타나기: .enter(숨김)를 붙여 한 번 그린 뒤 떼면 CSS transition으로 스르륵 나타난다
+  function reveal(node) {
     if (!node) return;
     node.classList.add("enter");
-    later(() => node.classList.remove("enter"), ms);
+    void node.offsetWidth;
+    node.classList.remove("enter");
   }
 
   // 슬라이드 i에서 그래프와 LLM 입력 상자 모양
-  //   anim(넘겨 왔을 때): 그래프 색이 먼저 서서히 바뀌고(0.55초), 다 바뀐 뒤 새로 채워지는 칸·교과서 쪽이 한꺼번에 나타난다
+  //   anim(넘겨 왔을 때): 그래프 색이 먼저 서서히 바뀌고(0.55초), 그동안 오른쪽 상자는 그대로 있다가
+  //   다 바뀐 뒤(after) 한꺼번에 바뀐다 — 새 칸 채움 · 지난 칸 노란색 거둠 · 교과서 쪽 · LLM으로 보냄
   function applySearch(i, anim) {
     const tween = anim && i > AT.search;
     if (tween) {
@@ -1143,16 +1165,47 @@ main#demo-view {
     } else {
       paintGraph(i);
     }
-    const after = tween ? 650 : 250; // 칸이 나타나는 때(ms): 그래프가 바뀐 뒤
-    el("demo-llm").classList.toggle("sent", i >= AT.send);
+    const after = tween ? 650 : 250; // 오른쪽 상자가 바뀌는 때(ms): 그래프가 바뀐 뒤
     const fillAt = FILL_AT();
     LLM.forEach((r, idx) => {
       const at = fillAt[r.from] ?? AT.search;
-      setLine(idx, i >= at, i === at);
-      if (anim && i === at) enter(lineEl(idx), after);
+      if (anim && i === at) {
+        // 이번에 채울 칸: 그때까지 빈칸(▢) 그대로 → 한꺼번에 채우며 노란 바탕
+        setLine(idx, false, false);
+        later(() => {
+          setLine(idx, true, true);
+          reveal(lineEl(idx));
+        }, after);
+      } else if (anim && at === i - 1) {
+        // 지난 슬라이드에 채운 칸: 노란 바탕을 그때 함께 거둔다
+        setLine(idx, true, true);
+        later(() => setLine(idx, true, false), after);
+      } else {
+        setLine(idx, i >= at, i === at);
+      }
     });
-    setPages(i >= AT.g_pages, i === AT.g_pages);
-    if (anim && i === AT.g_pages) el("demo-direct").querySelectorAll(".demo-page").forEach((c) => enter(c, after));
+    // LLM으로 보냄 (슬라이드 14)
+    const llmBox = el("demo-llm");
+    if (anim && i === AT.send) {
+      llmBox.classList.remove("sent");
+      later(() => llmBox.classList.add("sent"), after);
+    } else {
+      llmBox.classList.toggle("sent", i >= AT.send);
+    }
+    // 교과서 쪽 (슬라이드 13에 붙음)
+    const chips = () => el("demo-direct").querySelectorAll(".demo-page");
+    if (anim && i === AT.g_pages) {
+      setPages(false);
+      later(() => {
+        setPages(true, true);
+        chips().forEach(reveal);
+      }, after);
+    } else if (anim && i - 1 === AT.g_pages) {
+      setPages(true, true);
+      later(() => chips().forEach((c) => c.classList.remove("new")), after);
+    } else {
+      setPages(i >= AT.g_pages, i === AT.g_pages);
+    }
   }
 
   /* =======================================================================
