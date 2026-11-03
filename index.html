@@ -595,8 +595,8 @@ main#demo-view {
     { key: "judge", phase: "quiz" },       //  8 판정 규칙 상자
     { key: "search", phase: "search" },    //  9 그래프·LLM 입력 등장, 문항 칸 채움
     { key: "g_options", phase: "search" }, // 10 선지 노드 켜짐
-    { key: "g_card", phase: "search" },    // 11 오개념 노드 → 믿음 확인 질문·실행 반례·정개념 칸
-    { key: "g_concept", phase: "search" }, // 12 개념 노드 → 개념 칸
+    { key: "g_card", phase: "search" },    // 11 오개념 노드 → 믿음 확인 질문·실행 반례 칸
+    { key: "g_concept", phase: "search" }, // 12 정개념 노드 → 정개념·정개념 설명 칸
     { key: "g_pages", phase: "search" },   // 13 교과서 노드 → 오른쪽 아래 칸
     { key: "send", phase: "search" },      // 14 LLM으로 보냄
     { key: "feedback", phase: "fb" },      // 15 피드백
@@ -660,13 +660,14 @@ main#demo-view {
     fromProblem("문제2", PROBLEMS[1]);
     fromProblem("피드백문제", problemNo(FB.problem || 2));
     const card = mcOf(G.path.card);
+    const concept = G.nodes.find((n) => n.id === G.path.concept) || {}; // 정개념 노드
     Object.assign(V, {
       "오개념.이름": card.name || "",
       "오개념.설명": card.desc || "",
       "오개념.믿음확인질문": card.confirmQuestion || "",
       "오개념.실행반례": card.counterExample || "",
-      "오개념.정개념": card.correctConception || "",
-      개념: (G.nodes.find((n) => n.id === G.path.concept) || {}).title || "",
+      "정개념.이름": concept.title || "",
+      "정개념.설명": concept.definition || "",
       교과서쪽: (PAGES.pages || []).map((p) => `${p}쪽`).join(", "),
       판정결과: JUDGE.result || "",
     });
@@ -1050,7 +1051,7 @@ main#demo-view {
   /* =======================================================================
    * 6. LLM 입력 상자 (슬라이드 9~14) — data.js SLIDE_9.llmInput, SLIDE_13.pages
    * ======================================================================= */
-  // 칸이 채워지는 슬라이드: 문항(item) 9 · 오개념(card) 11 · 개념(concept) 12
+  // 칸이 채워지는 슬라이드: 문항(item) 9 · 오개념(card) 11 · 정개념(concept) 12
   const FILL_AT = () => ({ item: AT.search, card: AT.g_card, concept: AT.g_concept });
 
   function buildLlm() {
