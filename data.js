@@ -161,11 +161,8 @@ const SLIDE_3 = {
       confirmQuestion: "항목을 지워도 뒤 항목의 번호는 그대로라고 생각했나요?",
       counterExample: "[가은, 나래, 다솜, 라희]에서 2번째 항목을 삭제한 뒤 2번째 항목을 말하면 ‘다솜’을 말한다.",
     },
-    // ↓ 다른 오개념 (그래프에 흐리게만 나옴. 원본에 짧은 이름이 없어 원본 믿음 문장으로 이름을 붙임)
+    // 다른 오개념 (그래프에 흐리게만 나옴)
     "MC-LIST-01": { name: "번호 0부터 시작", desc: "리스트 번호가 0부터 시작한다고 생각함" },
-    "MC-LIST-04": { name: "범위 밖 번호도 괜찮음", desc: "없는 번호의 항목은 빈 값이 나올 뿐 오류가 안 난다고 생각함" },
-    "MC-LIST-05": { name: "빈 리스트는 리스트 아님", desc: "항목 수가 0인 리스트는 리스트가 아니라고 생각함" },
-    "MC-LIST-06": { name: "같은 종류 값만", desc: "리스트에는 같은 종류의 값만 담을 수 있다고 생각함" },
   },
 };
 
@@ -266,7 +263,6 @@ const SLIDE_9 = {
     card: "오개념",              // 빨강
     concept: "정개념",           // 파랑
     resource: "교과서",          // 초록
-    standard: "성취기준",        // 보라
     trail: "지금 따라가는 길",    // 주황 선
   },
 
@@ -274,21 +270,17 @@ const SLIDE_9 = {
   optionNode: "{번호}번 문제 {선지}",
 
   // 지식그래프
-  //   nodes.kind : option 학생이 고른 선지 · card 오개념 · concept 정개념(개념) · resource 교과서 · standard 성취기준
-  //     - 노드는 색깔 원으로, 글자는 원 아래에 보입니다.
+  //   nodes.kind : option 학생이 고른 선지 · card 오개념 · concept 정개념(개념) · resource 교과서
   //     - option 노드: problem(1 = 문제 1, 2 = 문제 2)의 고른 답으로 글자가 자동으로 채워짐
   //     - card 노드  : SLIDE_3의 misconceptions 이름·설명으로 글자가 자동으로 채워짐
   //     - path의 resource 노드: desc를 비워 두면 SLIDE_13.pages의 쪽이 순서대로 들어감
   //     - 나머지     : title(굵은 첫 줄), desc(둘째 줄, 없어도 됨)
   //     - path.concept 노드의 title이 {정개념.이름}, definition이 {정개념.설명} 이름표의 값입니다.
   //       (definition은 노드에는 안 보이고, 슬라이드 12에 LLM 입력 '정개념 설명' 칸으로 들어감)
-  //     - path에 있는 노드는 크게, 없는 노드(주변 노드)는 작고 흐리게 보이며 이름(굵은 첫 줄)만 나옵니다.
-  //     - 위치: path 노드는 자동. 주변 노드는 x, y로 정합니다(가운데 0,0 / 오른쪽·아래가 +).
-  //       화면은 path 노드에 맞춰 확대되므로, 멀리 둔 주변 노드는 화면 가장자리 밖으로 이어져 보입니다.
-  //     - 휴대폰처럼 좁은 화면에서는 주변 노드는 숨기고 path 노드만 위→아래로 놓음
-  //   edges.label : 선 위 글자 ("" = 글자 없음). 주변 선의 글자는 흐려서 보이지 않습니다.
+  //     - 위치는 자동. 넓은 화면에서 직접 정하려면 노드에 x, y를 씀(가운데 0,0 / 오른쪽·아래가 +)
+  //     - 휴대폰처럼 좁은 화면에서는 path에 없는 노드는 숨기고 위→아래로 놓음
+  //   edges.label : 선 위 글자 ("" = 글자 없음)
   //   path : 슬라이드 10~13에 차례로 불이 켜지는 길 (선지 → 오개념 → 정개념 → 교과서)
-  //   주변 노드·선은 원본 seed 그래프(proto/graph_view.py _seed_part)에서 이번 경로 바로 옆에 있는 것을 그대로 옮겼습니다.
   graph: {
     nodes: [
       { id: "OPT-1", kind: "option", problem: 1 },                     // 문제 1에서 고른 답
@@ -303,55 +295,23 @@ const SLIDE_9 = {
       },
       { id: "RES-1", kind: "resource", title: "교과서" },               // 쪽은 SLIDE_13.pages 첫째
       { id: "RES-2", kind: "resource", title: "교과서" },               // 쪽은 SLIDE_13.pages 둘째
-      // ↓ 이번 경로가 아닌 주변 노드 (작고 흐리게 보임)
-      { id: "CPT-LIST", kind: "concept", title: "리스트", x: 50, y: -235 },
-      { id: "CPT-VAR", kind: "concept", title: "변수", x: -150, y: -330 },
-      { id: "CPT-LIST-ADD", kind: "concept", title: "항목 추가하기", x: 250, y: -300 },
-      { id: "CPT-LIST-INDEX", kind: "concept", title: "항목 번호(순서)", x: 60, y: 245 },
-      { id: "CPT-LIST-GET", kind: "concept", title: "항목 값 꺼내기", x: 290, y: 300 },
-      { id: "CPT-LIST-LEN", kind: "concept", title: "항목 수", x: 520, y: 285 },
-      { id: "CPT-TRAVERSE", kind: "concept", title: "리스트 순회", x: 400, y: 420 },
-      { id: "MC-LIST-01", kind: "card", x: -190, y: 250 },
-      { id: "MC-LIST-04", kind: "card", x: -60, y: 400 },
-      { id: "MC-LIST-05", kind: "card", x: -250, y: -215 },
-      { id: "MC-LIST-06", kind: "card", x: -40, y: -390 },
-      { id: "STD-9정03-05", kind: "standard", title: "[9정03-05]", x: 480, y: -330 },
+      // ↓ 이번 경로가 아닌 주변 노드 (흐리게만 보임)
+      { id: "CPT-LIST", kind: "concept", title: "리스트" },
+      { id: "CPT-LIST-INDEX", kind: "concept", title: "항목 번호(순서)" },
+      { id: "MC-LIST-01", kind: "card" },
     ],
     edges: [
       { from: "OPT-1", to: "MC-LIST-08", label: "" }, // 고른 선지 → 오개념 (설계 경로의 '지시')
       { from: "OPT-2", to: "MC-LIST-08", label: "" },
-      // 오개념 → 그 정개념 (원본 관계 이름 '관련 개념')
-      { from: "MC-LIST-08", to: "CPT-LIST-DELETE", label: "정개념" },
+      { from: "MC-LIST-08", to: "CPT-LIST-DELETE", label: "정개념" }, // 오개념 → 그 정개념 (원본 관계 이름 '관련 개념')
       { from: "MC-LIST-01", to: "CPT-LIST-INDEX", label: "정개념" },
-      { from: "MC-LIST-04", to: "CPT-LIST-INDEX", label: "정개념" },
-      { from: "MC-LIST-05", to: "CPT-LIST", label: "정개념" },
-      { from: "MC-LIST-06", to: "CPT-LIST", label: "정개념" },
-      // 정개념 → 교과서
+      { from: "CPT-LIST", to: "RES-1", label: "설명 자료" },
       { from: "CPT-LIST-DELETE", to: "RES-1", label: "설명 자료" },
       { from: "CPT-LIST-DELETE", to: "RES-2", label: "설명 자료" },
-      { from: "CPT-LIST", to: "RES-1", label: "설명 자료" },
-      { from: "CPT-LIST-ADD", to: "RES-1", label: "설명 자료" },
       { from: "CPT-LIST-INDEX", to: "RES-1", label: "설명 자료" },
       { from: "CPT-LIST-INDEX", to: "RES-2", label: "설명 자료" },
-      { from: "CPT-LIST-GET", to: "RES-2", label: "설명 자료" },
-      { from: "CPT-LIST-LEN", to: "RES-2", label: "설명 자료" },
-      // 정개념 → 정개념 (선수)
-      { from: "CPT-VAR", to: "CPT-LIST", label: "선수" },
       { from: "CPT-LIST", to: "CPT-LIST-DELETE", label: "선수" },
-      { from: "CPT-LIST", to: "CPT-LIST-ADD", label: "선수" },
-      { from: "CPT-LIST", to: "CPT-LIST-GET", label: "선수" },
       { from: "CPT-LIST-INDEX", to: "CPT-LIST-DELETE", label: "선수" },
-      { from: "CPT-LIST-INDEX", to: "CPT-LIST-GET", label: "선수" },
-      { from: "CPT-LIST-INDEX", to: "CPT-TRAVERSE", label: "선수" },
-      { from: "CPT-LIST-LEN", to: "CPT-TRAVERSE", label: "선수" },
-      // 성취기준 → 정개념 (포함)
-      { from: "STD-9정03-05", to: "CPT-VAR", label: "포함" },
-      { from: "STD-9정03-05", to: "CPT-LIST", label: "포함" },
-      { from: "STD-9정03-05", to: "CPT-LIST-INDEX", label: "포함" },
-      { from: "STD-9정03-05", to: "CPT-LIST-GET", label: "포함" },
-      { from: "STD-9정03-05", to: "CPT-LIST-LEN", label: "포함" },
-      { from: "STD-9정03-05", to: "CPT-LIST-ADD", label: "포함" },
-      { from: "STD-9정03-05", to: "CPT-LIST-DELETE", label: "포함" },
     ],
     path: {
       options: ["OPT-1", "OPT-2"],   // 슬라이드 10
