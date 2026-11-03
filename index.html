@@ -364,6 +364,8 @@ main#demo-view {
 /* 오른쪽 아래 : LLM에 넣지 않고 화면에 바로 붙이는 교과서 쪽 */
 .demo-direct { display: flex; flex-wrap: wrap; gap: 8px; min-height: 46px; padding: 10px 12px; border: 1px dashed #d4d4d4; border-radius: 10px; }
 .demo-page { padding: 3px 10px; border: 1px solid #d4d4d8; border-radius: 6px; background: #fff; color: #333; font-size: 13px; font-weight: 600; }
+/* 이번 슬라이드에서 새로 붙은 교과서 쪽 (LLM 입력의 .jl.new와 같은 바탕) */
+.demo-page.new { background: #fff7e6; }
 
 /* =========================================================================
  * 6. 피드백 (슬라이드 15) : 왼쪽 문제 카드 + 오른쪽 피드백 한 문단
@@ -376,6 +378,7 @@ main#demo-view {
 .fb-body { opacity: 0; transition: opacity 0.3s ease; }
 .fb-body.on { opacity: 1; }
 .fb-text { margin: 0; font-size: 17px; line-height: 1.75; }
+.fb-text + .fb-text { margin-top: 12px; } /* 문단 사이 */
 .fb-text b { font-weight: 700; }
 .fb-pages { margin: 16px 0 0; padding-top: 12px; border-top: 1px solid var(--line); color: #333; font-size: 15px; }
 .fb-pages span { margin-right: 10px; color: #888; font-size: 13px; font-weight: 700; }
@@ -573,7 +576,7 @@ main#demo-view {
   const LLM = SEARCH.llmInput || [];
 
   // 실행 중 상태
-  const S = { step: -1, timers: [], net: null, nodes: null, edges: null, edgeIds: null, narrow: null, pagesOn: null, vw: 0 };
+  const S = { step: -1, timers: [], net: null, nodes: null, edges: null, edgeIds: null, narrow: null, vw: 0 };
 
   /* =======================================================================
    * 2. 공통 도구
@@ -999,7 +1002,6 @@ main#demo-view {
       LLM.map((r, i) => `<div class="jl" data-i="${i}"><span class="jk">${rich(r.label)}</span><span class="jv empty">▢</span></div>`).join("") +
       `<p class="demo-sent">${rich(slide("send").sentLabel)}</p>`;
     el("demo-direct").innerHTML = "";
-    S.pagesOn = false;
   }
 
   const lineEl = (i) => el("demo-llm").querySelector(`.jl[data-i="${i}"]`);
@@ -1016,11 +1018,10 @@ main#demo-view {
     line.classList.toggle("new", filled && isNew);
   }
 
-  // 교과서 쪽 칸 (isNew = 이번 슬라이드에서 붙음)
-  function setPages(filled) {
-    if (S.pagesOn === filled) return;
-    S.pagesOn = filled;
-    el("demo-direct").innerHTML = filled ? (PAGES.pages || []).map((p) => `<span class="demo-page">${rich(PAGES.pageChip, { 쪽: p })}</span>`).join("") : "";
+  // 교과서 쪽 칸: filled = 붙음, isNew = 이번 슬라이드에서 붙음(LLM 입력 칸처럼 옅은 노란 바탕)
+  function setPages(filled, isNew) {
+    const cls = `demo-page${isNew ? " new" : ""}`;
+    el("demo-direct").innerHTML = filled ? (PAGES.pages || []).map((p) => `<span class="${cls}">${rich(PAGES.pageChip, { 쪽: p })}</span>`).join("") : "";
   }
 
   // 슬라이드 i에서 LLM 입력 상자 모양 (움직임 없이 바로 바뀐다)
@@ -1032,13 +1033,13 @@ main#demo-view {
       const at = fillAt[r.from] ?? AT.search;
       setLine(idx, i >= at, i === at);
     });
-    setPages(i >= AT.g_pages);
+    setPages(i >= AT.g_pages, i === AT.g_pages);
   }
 
   /* =======================================================================
    * 7. 피드백 (슬라이드 15) — data.js SLIDE_15
    * ======================================================================= */
-  // 피드백 한 문단과 교과서 쪽 줄을 한 번에 보여 준다(넘겨 왔을 때만 짧게 페이드)
+  // 피드백 문단들과 교과서 쪽 줄을 한 번에 보여 준다(넘겨 왔을 때만 짧게 페이드)
   function renderFeedback(anim) {
     const p = problemNo(FB.problem || 2);
     const pages = (PAGES.pages || []).map((pg) => rich(FB.pageText, { 쪽: pg })).join(esc(FB.pageJoin ?? " · "));
@@ -1047,7 +1048,7 @@ main#demo-view {
         <section class="fb-panel">
           <p class="fb-h">${rich(FB.panelTitle)}</p>
           <div class="fb-body${anim ? "" : " on"}">
-            <p class="fb-text">${rich(FB.text)}</p>
+            ${(FB.paragraphs || [FB.text]).map((t) => `<p class="fb-text">${rich(t)}</p>`).join("")}
             <p class="fb-pages"><span>${rich(FB.pagesLabel)}</span>${pages}</p>
           </div>
         </section>
