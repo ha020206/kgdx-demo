@@ -817,8 +817,8 @@ main#demo-view {
       const conf = box.querySelector(".dconf.chosen");
       if (anim && s.picked && !opt.classList.contains("on")) {
         // 이번 슬라이드에서 고르는 문제만: 답 → 확신도 순서로 고른다(ms = 고르기까지 걸리는 시간)
-        later(() => opt.classList.add("on"), 400);
-        later(() => conf.classList.add("on"), 900);
+        later(() => opt.classList.add("on"), 30);
+        later(() => conf.classList.add("on"), 500);
       } else {
         opt.classList.toggle("on", s.picked);
         conf.classList.toggle("on", s.picked);
@@ -871,17 +871,17 @@ main#demo-view {
   }
 
   // 노드 모양: 원 (size = 반지름)
-  // st: dim(흐림, 회색 원) · lit(지금 찾음, 조금 크고 옅은 테두리) · done(지나옴, 종류 색 원)
+  // st: dim(흐림, 회색 원) · lit(지금 찾음, 조금 큰 종류 색 원) · done(지나옴, 종류 색 원)
+  //   테두리 링·그림자 없이 색과 크기만 바뀐다
   function nodeStyle(kind, st) {
     const c = KIND[kind] || KIND.concept;
     if (st === "dim") {
       return { size: 16, color: { background: "#e5e7eb", border: "#d1d5db" }, borderWidth: 1, font: nodeFont("#a3a3a3"), shadow: false };
     }
-    const lit = st === "lit";
     return {
-      size: lit ? 21 : 18,
-      color: { background: c.border, border: lit ? c.bg : c.border },
-      borderWidth: lit ? 6 : 1,
+      size: st === "lit" ? 21 : 18,
+      color: { background: c.border, border: c.border },
+      borderWidth: 1,
       font: nodeFont("#111"),
       shadow: false,
     };
@@ -1134,24 +1134,25 @@ main#demo-view {
   }
 
   // 슬라이드 i에서 그래프와 LLM 입력 상자 모양
-  //   anim(넘겨 왔을 때): 그래프 색은 서서히, 새로 채워지는 칸·교과서 쪽은 위에서부터 차례로(0.22초 간격)
+  //   anim(넘겨 왔을 때): 그래프 색이 먼저 서서히 바뀌고(0.55초), 다 바뀐 뒤 새로 채워지는 칸·교과서 쪽이 한꺼번에 나타난다
   function applySearch(i, anim) {
-    if (anim && i > AT.search) {
+    const tween = anim && i > AT.search;
+    if (tween) {
       paintGraph(i - 1); // 이전 슬라이드 모양에서 시작
       tweenGraph(i - 1, i);
     } else {
       paintGraph(i);
     }
+    const after = tween ? 650 : 250; // 칸이 나타나는 때(ms): 그래프가 바뀐 뒤
     el("demo-llm").classList.toggle("sent", i >= AT.send);
     const fillAt = FILL_AT();
-    let k = 0;
     LLM.forEach((r, idx) => {
       const at = fillAt[r.from] ?? AT.search;
       setLine(idx, i >= at, i === at);
-      if (anim && i === at) enter(lineEl(idx), 250 + 220 * k++);
+      if (anim && i === at) enter(lineEl(idx), after);
     });
     setPages(i >= AT.g_pages, i === AT.g_pages);
-    if (anim && i === AT.g_pages) el("demo-direct").querySelectorAll(".demo-page").forEach((c, n) => enter(c, 450 + 220 * n));
+    if (anim && i === AT.g_pages) el("demo-direct").querySelectorAll(".demo-page").forEach((c) => enter(c, after));
   }
 
   /* =======================================================================
