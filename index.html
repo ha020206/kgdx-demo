@@ -182,8 +182,7 @@ main#demo-view {
   border-radius: 14px;
   background: #fff;
   opacity: 0;
-  transform: translateX(56px);
-  transition: opacity 0.6s ease, transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition: opacity 0.3s ease, transform 0.35s ease;
 }
 .dq.show { opacity: 1; transform: none; }
 /* 문제 1만 있을 때(슬라이드 1~3)는 가운데 */
@@ -197,7 +196,7 @@ main#demo-view {
 .dfold {
   display: grid;
   grid-template-rows: 1fr;
-  transition: grid-template-rows 0.6s ease, opacity 0.45s ease;
+  transition: grid-template-rows 0.3s ease, opacity 0.25s ease;
 }
 .dfold > * { min-height: 0; overflow: hidden; }
 .dq.reduced .dfold:not(.keep) { grid-template-rows: 0fr; opacity: 0; }
@@ -214,7 +213,7 @@ main#demo-view {
   border-radius: 10px;
   background: #fff;
   font-size: 15px;
-  transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .dopt-text { flex: 1; min-width: 0; }
 .dradio {
@@ -238,20 +237,17 @@ main#demo-view {
 .dq.graded .dopt.correct .dopt-text { color: var(--right); }
 /* (학생이 정답을 골랐을 때) */
 .dq.graded .dopt.chosen.correct { background: var(--right-bg); border-color: var(--right); box-shadow: 0 0 0 1.5px var(--right); }
-/* 선지 오른쪽 표시 : ✕ 오답 / ✓ 정답 (채점 때 나타남) */
+/* 선지 오른쪽 표시 : ✕ 오답 / ✓ 정답 (채점 때 나타남, 글자만) */
 .dbadge {
   flex: 0 0 auto;
-  padding: 2px 9px;
-  border-radius: 999px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   opacity: 0;
-  transition: opacity 0.4s ease 0.1s;
+  transition: opacity 0.2s ease;
 }
 .dq.graded .dbadge { opacity: 1; }
-.dbadge.wrong { background: var(--wrong); color: #fff; }
-.dbadge.right { border: 1px solid var(--right-line); background: #fff; color: var(--right); }
-.dbadge.right.mine { border-color: var(--right); background: var(--right); color: #fff; }
+.dbadge.wrong { color: var(--wrong-ink); }
+.dbadge.right { color: var(--right); }
 /* 고른 선지 아래 오개념 노드 글 (슬라이드 3·6에 펼쳐짐) */
 .dtag {
   flex-basis: 100%;
@@ -262,7 +258,7 @@ main#demo-view {
   color: var(--wrong-ink);
   font-size: 13px;
   font-weight: 500;
-  transition: max-height 0.5s ease 0.15s, opacity 0.5s ease 0.15s, margin-top 0.5s ease 0.15s;
+  transition: max-height 0.25s ease, opacity 0.25s ease, margin-top 0.25s ease;
 }
 .dtag b { font-weight: 800; }
 .dq.graded .dopt.chosen .dtag { max-height: 64px; margin-top: 4px; opacity: 1; }
@@ -279,7 +275,7 @@ main#demo-view {
   padding: 2px 4px;
   overflow: hidden;
   white-space: nowrap;
-  transition: max-width 0.55s ease, opacity 0.45s ease, padding 0.55s ease;
+  transition: max-width 0.3s ease, opacity 0.25s ease, padding 0.3s ease;
 }
 .dconf.on { color: var(--ink); font-weight: 700; }
 .dsep {
@@ -287,7 +283,7 @@ main#demo-view {
   padding: 0 8px;
   overflow: hidden;
   color: #bbb;
-  transition: max-width 0.55s ease, opacity 0.45s ease, padding 0.55s ease;
+  transition: max-width 0.3s ease, opacity 0.25s ease, padding 0.3s ease;
 }
 /* 슬라이드 7부터 고른 확신도만 남김 */
 .dq.reduced .dconf:not(.chosen),
@@ -298,43 +294,31 @@ main#demo-view {
  * ========================================================================= */
 .demo-judge { margin-top: 24px; }
 .jrow { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 14px; }
+/* 왼쪽→오른쪽으로 짧게 차례차례 나타남(--i = 순서) */
 .ji {
   opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  transition-delay: calc(var(--i, 0) * 0.35s);
+  transition: opacity 0.25s ease;
+  transition-delay: calc(var(--i, 0) * 0.12s);
 }
-.demo-judge.on .ji { opacity: 1; transform: none; }
+.demo-judge.on .ji { opacity: 1; }
 .jans { display: flex; flex-direction: column; gap: 8px; }
 .jchip {
   padding: 8px 12px;
-  border: 1px solid var(--wrong);
-  border-radius: 10px;
-  background: var(--wrong-bg);
-  color: var(--wrong-ink);
+  border: 1px solid #d4d4d8;
+  border-radius: 8px;
+  background: #fff;
+  color: #222;
   font-size: 14px;
-  font-weight: 600;
 }
-.jchip b { font-weight: 800; }
-.jarrow { color: #999; font-size: 22px; font-weight: 700; text-align: center; }
-.jrule { min-width: 320px; padding: 12px 16px; border: 1px solid #d4d4d8; border-radius: 12px; background: #fafafa; }
-.jrule-h { margin: 0; font-size: 15px; font-weight: 800; }
-.jrule-note { margin: 2px 0 10px; color: #777; font-size: 12px; }
-.jrule ul { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
-.jrule li { display: flex; align-items: center; gap: 8px; font-size: 14px; }
-.jcheck {
-  display: inline-grid;
-  place-items: center;
-  flex: 0 0 auto;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--ink);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 800;
-}
-.jresult { padding: 12px 22px; border-radius: 12px; background: var(--wrong); color: #fff; font-size: 19px; font-weight: 800; text-align: center; }
+.jchip b { font-weight: 700; }
+.jarrow { color: #aaa; font-size: 20px; text-align: center; }
+.jrule { min-width: 320px; padding: 12px 16px; border: 1px solid #d4d4d8; border-radius: 8px; background: #fff; }
+.jrule-h { margin: 0; font-size: 15px; font-weight: 700; }
+.jrule-note { margin: 2px 0 10px; color: #888; font-size: 12px; }
+.jrule ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.jrule li { display: flex; align-items: baseline; gap: 8px; font-size: 14px; }
+.jcheck { flex: 0 0 auto; color: var(--ink); font-weight: 700; }
+.jresult { padding: 10px 20px; border: 1.5px solid var(--wrong); border-radius: 8px; background: #fff; color: var(--wrong-ink); font-size: 17px; font-weight: 700; text-align: center; }
 
 /* =========================================================================
  * 5. 그래프 탐색 · LLM 입력 (슬라이드 9~14)
@@ -357,80 +341,43 @@ main#demo-view {
 }
 .demo-legend i.trail { width: 18px; height: 0; border: 0; border-top: 3px solid var(--trail); border-radius: 0; vertical-align: 3px; }
 
-/* 오른쪽 검은 상자 : LLM 입력 (칸 이름 | 값) */
+/* 오른쪽 상자 : LLM 입력 (칸 이름 | 값) */
 .demo-llm {
   margin: 0 0 14px;
-  padding: 12px 10px;
-  border-radius: 12px;
-  background: #0f172a;
-  color: #cbd5e1;
+  padding: 10px 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: #222;
   font-size: 13px;
   line-height: 1.55;
-  transition: box-shadow 0.5s ease;
 }
-.jl { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; padding: 3px 6px; border-radius: 6px; }
-.jk { color: #93c5fd; font-weight: 700; word-break: keep-all; }
-.jv { color: #fde68a; white-space: pre-wrap; overflow-wrap: anywhere; }
-.jv.empty { color: #475569; }
-.demo-sent { display: none; margin: 10px 6px 0; color: #86efac; font-weight: 700; }
-.demo-llm.sent { box-shadow: 0 0 0 3px #22c55e, 0 0 26px rgba(34, 197, 94, 0.45); }
+.jl { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; padding: 4px 8px; border-radius: 6px; }
+/* 이번 슬라이드에서 새로 채워진 칸 */
+.jl.new { background: #fff7e6; }
+.jk { color: #888; font-weight: 700; word-break: keep-all; }
+.jv { color: #111; white-space: pre-wrap; overflow-wrap: anywhere; }
+.jv.empty { color: #ccc; }
+.demo-sent { display: none; margin: 8px 8px 0; color: var(--right); font-weight: 700; }
+.demo-llm.sent { border-color: var(--right); }
 .demo-llm.sent .demo-sent { display: block; }
 /* 오른쪽 아래 : LLM에 넣지 않고 화면에 바로 붙이는 교과서 쪽 */
-.demo-direct { display: flex; flex-wrap: wrap; gap: 8px; min-height: 46px; padding: 10px 12px; border: 1px dashed #d4d4d4; border-radius: 12px; }
-.demo-page { padding: 4px 10px; border-radius: 999px; background: #dcfce7; color: #166534; font-size: 13px; font-weight: 700; }
-/* 노드 내용이 LLM 입력 칸으로 날아가는 쪽지 (페이지 좌표라 스크롤해도 따라간다) */
-.demo-fly {
-  position: absolute;
-  z-index: 60;
-  max-width: 280px;
-  padding: 6px 10px;
-  overflow: hidden;
-  border: 2px solid var(--trail);
-  border-radius: 10px;
-  background: #fff7ed;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
-  color: #92400e;
-  font-size: 12.5px;
-  font-weight: 600;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  pointer-events: none;
-  transition: transform 0.8s cubic-bezier(0.3, 0.7, 0.2, 1), opacity 0.8s ease;
-}
+.demo-direct { display: flex; flex-wrap: wrap; gap: 8px; min-height: 46px; padding: 10px 12px; border: 1px dashed #d4d4d4; border-radius: 10px; }
+.demo-page { padding: 3px 10px; border: 1px solid #d4d4d8; border-radius: 6px; background: #fff; color: #333; font-size: 13px; font-weight: 600; }
 
 /* =========================================================================
- * 6. 피드백 (슬라이드 15) : 왼쪽 문제 카드 + 오른쪽 피드백 세 문장
+ * 6. 피드백 (슬라이드 15) : 왼쪽 문제 카드 + 오른쪽 피드백 한 문단
  * ========================================================================= */
 .fb-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 28px; align-items: start; }
 .fb-q .dtag { display: none; }
 .fb-panel { padding: 18px 20px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
-.fb-h { margin: 0 0 14px; color: #999; font-size: 13px; font-weight: 700; }
-.fb-parts { display: grid; gap: 16px; margin: 0; padding: 0; list-style: none; }
-.fb-part { opacity: 0; transform: translateY(6px); transition: opacity 0.4s ease, transform 0.4s ease; }
-.fb-part.on { opacity: 1; transform: none; }
-.fb-label { display: flex; align-items: center; gap: 7px; margin: 0 0 4px; color: #555; font-size: 13px; font-weight: 800; }
-.fb-label .n {
-  display: inline-grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--ink);
-  color: #fff;
-  font-size: 12px;
-}
-/* 글자를 치는 동안 높이가 흔들리지 않게: 다 쓴 글(.ghost, 안 보임) 위에 치는 글(.typed)을 겹친다 */
-.fb-text { display: grid; margin: 0; font-size: 18px; line-height: 1.65; }
-.fb-text > span { grid-area: 1 / 1; }
-.fb-text .ghost { visibility: hidden; }
-.fb-text b { font-weight: 800; }
-.fb-list { padding: 1px 6px; border: 1px solid #e5e7eb; border-radius: 6px; background: #f3f4f6; font-weight: 600; white-space: nowrap; }
-/* 마지막 문장(정개념) 강조 */
-.fb-part.key { padding: 12px 14px; border: 1px solid #bbf7d0; border-radius: 10px; background: var(--right-bg); }
-.fb-part.key .fb-label { color: var(--right); }
-.fb-part.key .fb-label .n { background: var(--right); }
-.fb-pages { margin: 18px 0 0; padding-top: 12px; border-top: 1px dashed var(--line); color: #333; font-size: 15px; font-weight: 600; opacity: 0; transition: opacity 0.4s ease; }
-.fb-pages.on { opacity: 1; }
+.fb-h { margin: 0 0 10px; color: #999; font-size: 13px; font-weight: 700; }
+/* 문단과 교과서 쪽 줄이 한 번에 나타남 */
+.fb-body { opacity: 0; transition: opacity 0.3s ease; }
+.fb-body.on { opacity: 1; }
+.fb-text { margin: 0; font-size: 17px; line-height: 1.75; }
+.fb-text b { font-weight: 700; }
+.fb-pages { margin: 16px 0 0; padding-top: 12px; border-top: 1px solid var(--line); color: #333; font-size: 15px; }
 .fb-pages span { margin-right: 10px; color: #888; font-size: 13px; font-weight: 700; }
 
 /* =========================================================================
@@ -680,7 +627,6 @@ main#demo-view {
   function cancelAll() {
     S.timers.forEach(clearTimeout);
     S.timers = [];
-    document.querySelectorAll(".demo-fly").forEach((f) => f.remove());
   }
   // 움직임 없이 바로 바꾸기
   function instant(fn) {
@@ -689,13 +635,6 @@ main#demo-view {
     fn();
     void st.offsetWidth;
     st.classList.remove("noanim");
-  }
-  // 한 번만 재생하는 움직임(CSS 클래스에 묶지 않아서 슬라이드를 넘겨도 다시 재생되지 않는다)
-  function pulse(node) {
-    node.animate([{ transform: "scale(1)" }, { transform: "scale(0.96)" }, { transform: "scale(1)" }], { duration: 350, easing: "ease" });
-  }
-  function flash(node) {
-    node.animate([{ backgroundColor: "rgba(245, 158, 11, 0.5)" }, { backgroundColor: "rgba(245, 158, 11, 0)" }], { duration: 1400, easing: "ease" });
   }
 
   /* =======================================================================
@@ -832,15 +771,9 @@ main#demo-view {
       const opt = box.querySelector(".dopt.chosen");
       const conf = box.querySelector(".dconf.chosen");
       if (anim && s.picked && !opt.classList.contains("on")) {
-        // 이번 슬라이드에서 고르는 문제만: 답 → 확신도 순서로 누르는 모습
-        later(() => {
-          opt.classList.add("on");
-          pulse(opt);
-        }, 700);
-        later(() => {
-          conf.classList.add("on");
-          pulse(conf);
-        }, 1700);
+        // 이번 슬라이드에서 고르는 문제만: 답 → 확신도 순서로 바로 고른다(ms = 고르기까지 걸리는 시간)
+        later(() => opt.classList.add("on"), 150);
+        later(() => conf.classList.add("on"), 450);
       } else {
         opt.classList.toggle("on", s.picked);
         conf.classList.toggle("on", s.picked);
@@ -893,7 +826,7 @@ main#demo-view {
   }
 
   // 노드 모양: 원 (size = 반지름)
-  // st: dim(흐림, 회색 원) · lit(지금 찾음, 크게 빛남) · done(지나옴, 종류 색 원)
+  // st: dim(흐림, 회색 원) · lit(지금 찾음, 조금 크고 옅은 테두리) · done(지나옴, 종류 색 원)
   function nodeStyle(kind, st) {
     const c = KIND[kind] || KIND.concept;
     if (st === "dim") {
@@ -901,17 +834,17 @@ main#demo-view {
     }
     const lit = st === "lit";
     return {
-      size: lit ? 24 : 19,
-      color: { background: c.border, border: lit ? "#ffffff" : c.border },
-      borderWidth: lit ? 4 : 2,
+      size: lit ? 21 : 18,
+      color: { background: c.border, border: lit ? c.bg : c.border },
+      borderWidth: lit ? 6 : 1,
       font: nodeFont("#111"),
-      shadow: lit ? { enabled: true, color: c.border, size: 22, x: 0, y: 0 } : false,
+      shadow: false,
     };
   }
 
   function edgeStyle(st) {
     // background: 글자 뒤로 선이 비쳐 "관련·개념"처럼 보이지 않게 그래프 바탕색을 깐다
-    if (st === "lit") return { color: { color: "#f59e0b" }, width: 4, font: { ...EDGE_FONT, color: "#b45309", background: "#fcfcfd" } };
+    if (st === "lit") return { color: { color: "#f59e0b" }, width: 3, font: { ...EDGE_FONT, color: "#b45309", background: "#fcfcfd" } };
     if (st === "done") return { color: { color: "#9ca3af" }, width: 2, font: { ...EDGE_FONT, color: "#6b7280", background: "#fcfcfd" } };
     // 흐린 선은 글자를 숨긴다(경로 위 글자와 겹치지 않게)
     return { color: { color: "#e5e5e5" }, width: 1, font: { ...EDGE_FONT, color: "rgba(0,0,0,0)", strokeWidth: 0 } };
@@ -1073,152 +1006,53 @@ main#demo-view {
   // LLM 입력 칸 값 ({이름표}를 채운 뒤의 글자)
   const llmValue = (i) => lines(LLM[i].value).map((l) => plain(l)).join("\n");
 
-  function setLine(i, filled, doFlash) {
+  // 칸 하나: filled = 채움, isNew = 이번 슬라이드에서 새로 채워짐(옅은 노란 바탕)
+  function setLine(i, filled, isNew) {
     const line = lineEl(i);
     if (!line) return;
     const v = line.querySelector(".jv");
     v.textContent = filled ? llmValue(i) : "▢";
     v.classList.toggle("empty", !filled);
-    if (doFlash) flash(line);
+    line.classList.toggle("new", filled && isNew);
   }
 
-  // 교과서 쪽 칸: 상태가 바뀔 때만 다시 그린다(슬라이드를 넘길 때 다시 움직이지 않게)
-  function setPages(filled, anim) {
+  // 교과서 쪽 칸 (isNew = 이번 슬라이드에서 붙음)
+  function setPages(filled) {
     if (S.pagesOn === filled) return;
     S.pagesOn = filled;
-    const box = el("demo-direct");
-    box.innerHTML = filled ? (PAGES.pages || []).map((p) => `<span class="demo-page">${rich(PAGES.pageChip, { 쪽: p })}</span>`).join("") : "";
-    if (filled && anim) box.querySelectorAll(".demo-page").forEach(pulse);
+    el("demo-direct").innerHTML = filled ? (PAGES.pages || []).map((p) => `<span class="demo-page">${rich(PAGES.pageChip, { 쪽: p })}</span>`).join("") : "";
   }
 
-  // 노드의 페이지 좌표(스크롤 포함)
-  function nodePage(id) {
-    const p = S.net.getPositions([id])[id];
-    const dom = S.net.canvasToDOM(p);
-    const r = el("demo-graph").getBoundingClientRect();
-    return { x: r.left + window.scrollX + dom.x, y: r.top + window.scrollY + dom.y };
-  }
-
-  // 그래프에서 찾은 노드의 내용이 LLM 입력 칸으로 날아가는 모습 (화면 밖으로 넘치지 않게 가로 위치를 맞춘다)
-  function fly(fromId, target, text, delay, done) {
-    later(() => {
-      const s = nodePage(fromId);
-      const tr = target.getBoundingClientRect();
-      const f = document.createElement("div");
-      f.className = "demo-fly";
-      f.textContent = text;
-      document.body.appendChild(f);
-      const minX = window.scrollX + 4;
-      const maxX = window.scrollX + document.documentElement.clientWidth - f.offsetWidth - 4;
-      const clampX = (x) => Math.max(minX, Math.min(maxX, x));
-      const x0 = clampX(s.x - 40);
-      const y0 = s.y - 14;
-      const x1 = clampX(tr.left + window.scrollX);
-      const y1 = tr.top + window.scrollY;
-      f.style.left = `${x0}px`;
-      f.style.top = `${y0}px`;
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => {
-          f.style.transform = `translate(${x1 - x0}px, ${y1 - y0}px)`;
-          f.style.opacity = "0.25";
-        })
-      );
-      later(() => {
-        f.remove();
-        done();
-      }, 850);
-    }, delay);
-  }
-
-  function applySearch(i, anim) {
+  // 슬라이드 i에서 LLM 입력 상자 모양 (움직임 없이 바로 바뀐다)
+  function applySearch(i) {
     paintGraph(i);
     el("demo-llm").classList.toggle("sent", i >= AT.send);
     const fillAt = FILL_AT();
-    const p = G.path;
-    const fromNode = { card: p.card, concept: p.concept };
-    let k = 0;
     LLM.forEach((r, idx) => {
       const at = fillAt[r.from] ?? AT.search;
-      if (anim && i === at) {
-        setLine(idx, false, false);
-        if (fromNode[r.from]) {
-          fly(fromNode[r.from], lineEl(idx), llmValue(idx).split("\n")[0], 300 + 650 * k++, () => setLine(idx, true, true));
-        } else {
-          later(() => setLine(idx, true, true), 250 + 250 * k++);
-        }
-      } else {
-        setLine(idx, i >= at, false);
-      }
+      setLine(idx, i >= at, i === at);
     });
-    const pages = PAGES.pages || [];
-    if (anim && i === AT.g_pages) {
-      setPages(false);
-      let left = p.resources.length;
-      if (!left) setPages(true, true);
-      p.resources.forEach((rid, n) =>
-        fly(rid, el("demo-direct"), plain(PAGES.pageChip, { 쪽: pages[n] || "" }), 300 + 450 * n, () => {
-          left -= 1;
-          if (!left) setPages(true, true);
-        })
-      );
-    } else {
-      setPages(i >= AT.g_pages, false);
-    }
+    setPages(i >= AT.g_pages);
   }
 
   /* =======================================================================
    * 7. 피드백 (슬라이드 15) — data.js SLIDE_15
    * ======================================================================= */
-  // [가, 나] → 리스트 모양, ‘가’·**가** → 굵게 (치는 도중의 짝 없는 ** 는 숨긴다)
-  function fmtFb(s) {
-    return esc(s)
-      .replace(/\[([^\]]+)\]/g, '<span class="fb-list">[$1]</span>')
-      .replace(/‘([^’]+)’/g, "<b>‘$1’</b>")
-      .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
-      .replace(/\*\*/g, "");
-  }
-
+  // 피드백 한 문단과 교과서 쪽 줄을 한 번에 보여 준다(넘겨 왔을 때만 짧게 페이드)
   function renderFeedback(anim) {
     const p = problemNo(FB.problem || 2);
-    // 문장 안의 {이름표}는 먼저 채운다(굵게·리스트 모양은 fmtFb가 그 뒤에 입힌다)
-    const parts = (FB.parts || []).map((pt) => ({ label: pt.label, text: fill(pt.text, {}, same) }));
-    const last = parts.length - 1;
     const pages = (PAGES.pages || []).map((pg) => rich(FB.pageText, { 쪽: pg })).join(esc(FB.pageJoin ?? " · "));
     el("demo-fb").innerHTML = `<div class="fb-cols">
         <article class="dq show graded fb-q">${questionHtml(p, { graded: true, mark: FB.mark })}</article>
         <section class="fb-panel">
           <p class="fb-h">${rich(FB.panelTitle)}</p>
-          <ol class="fb-parts">${parts
-            .map(
-              (pt, i) => `<li class="fb-part${i === last ? " key" : ""}">
-                <p class="fb-label"><span class="n">${i + 1}</span>${rich(pt.label)}</p>
-                <p class="fb-text"><span class="ghost">${fmtFb(pt.text)}</span><span class="typed"></span></p>
-              </li>`
-            )
-            .join("")}</ol>
-          <p class="fb-pages"><span>${rich(FB.pagesLabel)}</span>${pages}</p>
+          <div class="fb-body${anim ? "" : " on"}">
+            <p class="fb-text">${rich(FB.text)}</p>
+            <p class="fb-pages"><span>${rich(FB.pagesLabel)}</span>${pages}</p>
+          </div>
         </section>
       </div>`;
-    const rows = [...el("demo-fb").querySelectorAll(".fb-part")];
-    const pagesLine = el("demo-fb").querySelector(".fb-pages");
-    if (!anim) {
-      rows.forEach((r, i) => {
-        r.classList.add("on");
-        r.querySelector(".typed").innerHTML = fmtFb(parts[i].text);
-      });
-      pagesLine.classList.add("on");
-      return;
-    }
-    // 한 문장씩 타자 치듯 (SPEED = 글자 하나당 ms)
-    const SPEED = 24;
-    let t = 500;
-    parts.forEach((pt, i) => {
-      const box = rows[i].querySelector(".typed");
-      later(() => rows[i].classList.add("on"), t);
-      for (let n = 1; n <= pt.text.length; n += 1) later(() => (box.innerHTML = fmtFb(pt.text.slice(0, n))), t + 200 + n * SPEED);
-      t += 200 + pt.text.length * SPEED + 450;
-    });
-    later(() => pagesLine.classList.add("on"), t);
+    if (anim) later(() => el("demo-fb").querySelector(".fb-body").classList.add("on"), 120);
   }
 
   /* =======================================================================
@@ -1235,14 +1069,14 @@ main#demo-view {
     q2_pick: [["#demo-q1 .dq-conf", 0]],
     q2_grade: [["#demo-q1 .dopt.chosen", 0]],
     reduce: [["top", 0]],
-    judge: [["#demo-judge", 500]],
-    search: [["top", 0], ["#demo-llm", 1200]],
+    judge: [["#demo-judge", 200]],
+    search: [["top", 0], ["#demo-llm", 700]],
     g_options: [["#demo-graph", 0]],
-    g_card: [["#demo-graph", 0], ["#demo-llm", 900]],
-    g_concept: [["#demo-graph", 0], ["#demo-llm", 900]],
-    g_pages: [["#demo-graph", 0], ["#demo-direct", 900]],
+    g_card: [["#demo-graph", 0], ["#demo-llm", 700]],
+    g_concept: [["#demo-graph", 0], ["#demo-llm", 700]],
+    g_pages: [["#demo-graph", 0], ["#demo-direct", 700]],
     send: [["#demo-llm", 0]],
-    feedback: [["#demo-fb .fb-panel", 300, "start"]],
+    feedback: [["#demo-fb .fb-panel", 0, "start"]],
   };
 
   function focusStep(i, anim) {
@@ -1287,8 +1121,7 @@ main#demo-view {
       }
     } else if (phase === "search") {
       if (!syncGraph(!wasSearch)) return;
-      if (anim && i > 0 && STEPS[i - 1].phase === "search") applySearch(i - 1, false);
-      applySearch(i, anim);
+      applySearch(i);
     } else {
       renderFeedback(anim);
     }
