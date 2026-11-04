@@ -73,7 +73,7 @@ const COMMON = {
   //   보기를 더 넣으려면 { value: 2, label: "조금 확실해요" } 처럼 한 줄 추가
   confidence: [
     { value: 3, label: "확실해요" },
-    { value: 1, label: "잘 모르겠어요" },
+    { value: 1, label: "확실하지 않아요" },
   ],
 
   // 회색 설명 칸 맨 아래 안내 (컴퓨터에서 보일 때 / 휴대폰에서 보일 때)
@@ -274,7 +274,7 @@ const SLIDE_9 = {
   // 지식그래프
   //   nodes.kind : option 학생이 고른 선지 · card 오개념 · concept 정개념 · resource 학습 자료(교과서)
   //     - path에 있는 노드(찾아가는 노드): 큰 원 + 원 안에 위 nodeText + 원 아래 이름
-  //     - path에 없는 주변 노드: 작은 원 + 이름만, 아주 연하게
+  //     - path에 없는 주변 노드: 작은 원 + 이름만, 종류 색(빨강·파랑·초록)으로 아주 연하게
   //     - card 노드 이름은 SLIDE_3의 misconceptions의 name, 교과서 노드 이름은 SLIDE_13.pages의 쪽
   //     - 나머지 노드 이름은 title
   //     - path.concept 노드의 title이 {정개념.이름}, definition이 {정개념.설명} 이름표의 값입니다.
@@ -299,7 +299,8 @@ const SLIDE_9 = {
       { id: "RES-1", kind: "resource" },             // 학습 자료 (쪽은 SLIDE_13.pages)
       // ↓ 이번 경로가 아닌 주변 노드 (작게, 아주 연하게, 이름만)
       { id: "CPT-LIST", kind: "concept", title: "리스트", x: 40, y: -215 },
-      { id: "CPT-FUNC", kind: "concept", title: "함수", x: 400, y: 215 },   // 원본에서 변수 쪽과 이어진 선이 없음
+      { id: "CPT-FUNC", kind: "concept", title: "함수", x: 420, y: 215 },   // 원본에서 변수 쪽과 이어진 선이 없음
+      { id: "RES-FUNC", kind: "resource", title: "119~121쪽", x: 445, y: 45 }, // 원본 교과서 119~121쪽(함수 만들기·사용하기)
       { id: "MC-VAR-01b", kind: "card", x: -175, y: -195 },                 // 처음 값을 기억한다
       { id: "MC-VAR-10", kind: "card", x: -30, y: 250 },                    // 값 대신 이름이 나온다
       { id: "MC-VAR-SUM", kind: "card", x: 230, y: 235 },                   // 값이 누적된다 (시연용)
@@ -314,6 +315,7 @@ const SLIDE_9 = {
       { from: "MC-VAR-10", to: "CPT-VAR" },  // 원본: 값 대신 이름이 나온다 → 변수
       { from: "MC-VAR-01b", to: "CPT-VAR" }, // (원본은 → 변수 값 정하기)
       { from: "MC-VAR-SUM", to: "CPT-VAR" }, // 시연용
+      { from: "CPT-FUNC", to: "RES-FUNC" },  // 원본: 함수 → 교과서 119~121쪽
     ],
     path: {
       options: ["OPT-1", "OPT-2"], // 슬라이드 10

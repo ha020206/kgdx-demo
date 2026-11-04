@@ -288,7 +288,7 @@ main#demo-view {
 .dbadge.wrong { color: var(--wrong-ink); }
 .dbadge.right { color: var(--right); }
 
-/* --- 확신도 : "확신도" 제목 줄 + ○ 확실해요 · ○ 조금 확실해요 · ○ 잘 모르겠어요 --- */
+/* --- 확신도 : "확신도" 제목 줄 + ○ 확실해요 · ○ 확실하지 않아요 (보기는 data.js COMMON.confidence) --- */
 .dq-conf { margin-top: 12px; }
 .dq-conf-h { margin: 0 0 6px; font-size: 15px; font-weight: 700; }
 .dq-conf-row { display: flex; flex-wrap: wrap; align-items: center; color: #444; font-size: 16px; }
@@ -880,11 +880,12 @@ main#demo-view {
    * 5. 그래프 (슬라이드 9~13) — data.js SLIDE_9.graph
    * ======================================================================= */
   // 노드 종류별 색 — 바탕(bg)·테두리(border). 보내 준 '그래프RAG 탐색' 그림과 같은 색
+  //   faintBg·faintBorder: 경로가 아닌 주변 노드의 색(같은 계열, 겨우 알아볼 만큼 아주 연하게)
   const KIND = {
-    option: { bg: "#f5f5f5", border: "#666666" },   // 학생이 고른 선지: 회색
-    card: { bg: "#f8cecc", border: "#b85450" },     // 오개념: 빨강
-    concept: { bg: "#dae8fc", border: "#6c8ebf" },  // 정개념: 파랑
-    resource: { bg: "#d5e8d4", border: "#82b366" }, // 학습 자료: 초록
+    option: { bg: "#f5f5f5", border: "#666666", faintBg: "#fafafa", faintBorder: "#e4e4e7" },   // 학생이 고른 선지: 회색
+    card: { bg: "#f8cecc", border: "#b85450", faintBg: "#fdf4f3", faintBorder: "#efcfcc" },     // 오개념: 빨강
+    concept: { bg: "#dae8fc", border: "#6c8ebf", faintBg: "#f4f8fe", faintBorder: "#cddcf0" },  // 정개념: 파랑
+    resource: { bg: "#d5e8d4", border: "#82b366", faintBg: "#f3f9f3", faintBorder: "#cde2cb" }, // 학습 자료: 초록
   };
   const RADIUS = { option: 40, card: 50, concept: 48, resource: 42 }; // 찾아가는 노드(큰 원) 반지름
   const FAINT_R = 15; // 주변 노드(작은 원) 반지름
@@ -922,13 +923,13 @@ main#demo-view {
   }
 
   // 노드 모양 (size = 반지름, ink = 원 안 글자 색)
-  //   faint: 주변 노드(작고 아주 연하게) · dim: 찾아가는 노드인데 아직(회색)
+  //   faint: 주변 노드(작고, 종류 색으로 아주 연하게) · dim: 찾아가는 노드인데 아직(회색)
   //   lit: 지금 찾음(진한 테두리, 조금 큼) · done: 지나옴(종류 색)
   function nodeStyle(n, st) {
-    if (st === "faint") {
-      return { size: FAINT_R, color: { background: "#ffffff", border: "#e1e4e8" }, borderWidth: 1.5, font: capFont("#c4c8ce", 14), ink: "#ffffff", shadow: false };
-    }
     const c = KIND[n.kind] || KIND.concept;
+    if (st === "faint") {
+      return { size: FAINT_R, color: { background: c.faintBg, border: c.faintBorder }, borderWidth: 1.5, font: capFont("#c4c8ce", 14), ink: c.faintBg, shadow: false };
+    }
     const r = RADIUS[n.kind] || 44;
     if (st === "dim") {
       return { size: r, color: { background: "#f4f4f5", border: "#d4d4d8" }, borderWidth: 1.5, font: capFont("#b4b4bb", 16), ink: "#a1a1aa", shadow: false };
