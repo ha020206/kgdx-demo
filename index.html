@@ -898,8 +898,8 @@ main#demo-view {
     concept: { bg: "#dae8fc", border: "#6c8ebf", faintBg: "#f4f8fe", faintBorder: "#cddcf0" },  // 정개념: 파랑
     resource: { bg: "#d5e8d4", border: "#82b366", faintBg: "#f3f9f3", faintBorder: "#cde2cb" }, // 학습 자료: 초록
   };
-  const RADIUS = { option: 40, card: 50, concept: 48, resource: 42 }; // 찾아가는 노드(큰 원) 반지름
-  const FAINT_R = 15; // 주변 노드(작은 원) 반지름
+  const RADIUS = { option: 46, card: 58, concept: 56, resource: 50 }; // 찾아가는 노드(큰 원) 반지름
+  const FAINT_R = 24; // 주변 노드(작은 원) 반지름
   const NARROW_GRAPH = 640; // 그래프 칸이 이보다 좁으면(휴대폰) 위→아래로 놓고 주변 노드는 숨긴다
   const FACE = "Pretendard, sans-serif";
   // 원 아래 이름 글자. background: 글자 뒤 바탕(선이 글자 위로 지나가 보이지 않게)
@@ -939,19 +939,19 @@ main#demo-view {
   function nodeStyle(n, st) {
     const c = KIND[n.kind] || KIND.concept;
     if (st === "faint") {
-      return { size: FAINT_R, color: { background: c.faintBg, border: c.faintBorder }, borderWidth: 1.5, font: capFont("#c4c8ce", 14), ink: c.faintBg, shadow: false };
+      return { size: FAINT_R, color: { background: c.faintBg, border: c.faintBorder }, borderWidth: 1.5, font: capFont("#c4c8ce", 15), ink: c.faintBg, shadow: false };
     }
     const r = RADIUS[n.kind] || 44;
     if (st === "dim") {
       // 아직 안 찾은 노드: 주변 노드와 같은 아주 연한 종류 색(오개념 빨강 · 정개념 파랑 · 학습 자료 초록)
-      return { size: r, color: { background: c.faintBg, border: c.faintBorder }, borderWidth: 1.5, font: capFont("#b4b4bb", 16), ink: "#a1a1aa", shadow: false };
+      return { size: r, color: { background: c.faintBg, border: c.faintBorder }, borderWidth: 1.5, font: capFont("#b4b4bb", 17), ink: "#a1a1aa", shadow: false };
     }
     const lit = st === "lit";
     return {
       size: lit ? r * 1.08 : r,
       color: { background: c.bg, border: c.border },
       borderWidth: lit ? 3.5 : 2,
-      font: capFont("#27272a", 16),
+      font: capFont("#27272a", 17),
       ink: "#111111",
       shadow: false,
     };
@@ -1067,7 +1067,7 @@ main#demo-view {
           id: n.id,
           label: cap || undefined,
           inner: innerText(n),
-          innerSize: n.kind === "option" ? 17 : 20,
+          innerSize: n.kind === "option" ? 19 : 23,
           x: pos[n.id].x,
           y: pos[n.id].y,
           hidden: narrow && !onPath(n.id),
