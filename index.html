@@ -44,6 +44,13 @@
   --decl: #e67e22;
   --ctrl: #f0a033;
   --fn: #6b5ce7;
+  /* LLM 입력 하이라이트: 그 칸을 채운 그래프 노드와 같은 계열의 옅은 색
+     (문항 = 선지 회색 · 오개념 칸 = 빨강 · 정개념 칸 = 파랑 · 교과서 쪽 = 초록) */
+  --hl-item: #f1f1f3;
+  --hl-card: #fcebea;
+  --hl-concept: #eaf1fc;
+  --hl-res: #e8f3e7;
+  --hl-res-line: #bcd8b9;
 }
 
 /* =========================================================================
@@ -393,8 +400,12 @@ main#demo-view {
   transition: border-color 0.4s ease;
 }
 .jl { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; padding: 4px 8px; border-radius: 6px; transition: background-color 0.35s ease; }
-/* 이번 슬라이드에서 새로 채워진 칸: 노란 바탕이 번지고 값이 스르륵 나타남 (.enter = 나타나기 직전) */
-.jl.new { background: #fff7e6; }
+/* 이번 슬라이드에서 새로 채워진 칸: 종류 색 바탕이 번지고 값이 스르륵 나타남 (.enter = 나타나기 직전)
+   k-item 문항에서 채운 칸 · k-card 오개념에서 채운 칸 · k-concept 정개념에서 채운 칸 (data.js llmInput의 from) */
+.jl.k-item { --hl: var(--hl-item); }
+.jl.k-card { --hl: var(--hl-card); }
+.jl.k-concept { --hl: var(--hl-concept); }
+.jl.new { background: var(--hl, var(--hl-item)); }
 .jl.enter { background: transparent; }
 .jk { color: #888; font-weight: 700; word-break: keep-all; }
 .jv { color: #111; white-space: pre-wrap; overflow-wrap: anywhere; transition: opacity 0.45s ease, transform 0.45s ease; }
@@ -408,10 +419,10 @@ main#demo-view {
 .demo-llm.sent .demo-sent { visibility: visible; opacity: 1; }
 /* 오른쪽 아래 : LLM에 넣지 않고 화면에 바로 붙이는 교과서 쪽 */
 .demo-direct { display: flex; flex-wrap: wrap; gap: 8px; min-height: 46px; padding: 10px 12px; border: 1px dashed #d4d4d4; border-radius: 10px; }
-.demo-page { padding: 3px 10px; border: 1px solid #d4d4d8; border-radius: 6px; background: #fff; color: #333; font-size: 13px; font-weight: 600; transition: opacity 0.45s ease, transform 0.45s ease, background-color 0.35s ease; }
-/* 이번 슬라이드에서 새로 붙은 교과서 쪽 (LLM 입력의 .jl.new와 같은 바탕, 같은 방식으로 나타남) */
-.demo-page.new { background: #fff7e6; }
-.demo-page.enter { opacity: 0; transform: translateY(4px); background: #fff; }
+.demo-page { padding: 3px 10px; border: 1px solid #d4d4d8; border-radius: 6px; background: #fff; color: #333; font-size: 13px; font-weight: 600; transition: opacity 0.45s ease, transform 0.45s ease, background-color 0.35s ease, border-color 0.35s ease; }
+/* 이번 슬라이드에서 새로 붙은 교과서 쪽 (학습 자료 노드처럼 초록 바탕, LLM 입력 칸과 같은 방식으로 나타남) */
+.demo-page.new { background: var(--hl-res); border-color: var(--hl-res-line); }
+.demo-page.enter { opacity: 0; transform: translateY(4px); background: #fff; border-color: #d4d4d8; }
 
 /* =========================================================================
  * 6. 피드백 (슬라이드 15) : 문제 카드 안, 선지·확신도 아래 회색 상자에 피드백 한 문단
@@ -1191,7 +1202,7 @@ main#demo-view {
     el("t-llm").innerHTML = rich(SEARCH.llmTitle);
     el("t-direct").innerHTML = rich(SEARCH.directTitle);
     el("demo-llm").innerHTML =
-      LLM.map((r, i) => `<div class="jl" data-i="${i}"><span class="jk">${rich(r.label)}</span><span class="jv empty">▢</span></div>`).join("") +
+      LLM.map((r, i) => `<div class="jl k-${r.from || "item"}" data-i="${i}"><span class="jk">${rich(r.label)}</span><span class="jv empty">▢</span></div>`).join("") +
       `<p class="demo-sent">${rich(slide("send").sentLabel)}</p>`;
     el("demo-direct").innerHTML = "";
   }
@@ -1200,7 +1211,7 @@ main#demo-view {
   // LLM 입력 칸 값 ({이름표}를 채운 뒤의 글자)
   const llmValue = (i) => lines(LLM[i].value).map((l) => plain(l)).join("\n");
 
-  // 칸 하나: filled = 채움, isNew = 이번 슬라이드에서 새로 채워짐(옅은 노란 바탕)
+  // 칸 하나: filled = 채움, isNew = 이번 슬라이드에서 새로 채워짐(종류 색 옅은 바탕)
   function setLine(i, filled, isNew) {
     const line = lineEl(i);
     if (!line) return;
@@ -1210,7 +1221,7 @@ main#demo-view {
     line.classList.toggle("new", filled && isNew);
   }
 
-  // 교과서 쪽 칸: filled = 붙음, isNew = 이번 슬라이드에서 붙음(LLM 입력 칸처럼 옅은 노란 바탕)
+  // 교과서 쪽 칸: filled = 붙음, isNew = 이번 슬라이드에서 붙음(옅은 초록 바탕)
   function setPages(filled, isNew) {
     const cls = `demo-page${isNew ? " new" : ""}`;
     el("demo-direct").innerHTML = filled ? (PAGES.pages || []).map((p) => `<span class="${cls}">${rich(PAGES.pageChip, { 쪽: p })}</span>`).join("") : "";
@@ -1225,17 +1236,17 @@ main#demo-view {
   }
 
   // 슬라이드 i에서 그래프와 LLM 입력 상자 모양
-  //   anim(넘겨 왔을 때) 순서: ① 지난 슬라이드의 노란 바탕이 지워짐(0.35초)
+  //   anim(넘겨 왔을 때) 순서: ① 지난 슬라이드의 색 바탕이 지워짐(0.35초)
   //                            ② 그래프 색이 서서히 바뀜(0.55초)
-  //                            ③ 새로 채워지는 칸·교과서 쪽이 노란 바탕으로 한꺼번에 나타남 (+ LLM으로 보냄)
-  //   지울 노란 바탕이 없으면 ①을 건너뛰고 바로 ②부터.
+  //                            ③ 새로 채워지는 칸·교과서 쪽이 색 바탕으로 한꺼번에 나타남 (+ LLM으로 보냄)
+  //   지울 색 바탕이 없으면 ①을 건너뛰고 바로 ②부터.
   function applySearch(i, anim) {
     const tween = anim && i > AT.search;
     const fillAt = FILL_AT();
     const atOf = (r) => fillAt[r.from] ?? AT.search;
     const hadOld = tween && (LLM.some((r) => atOf(r) === i - 1) || i - 1 === AT.g_pages);
     const graphAt = hadOld ? 350 : 0; // ② 그래프가 바뀌기 시작하는 때(ms)
-    const after = tween ? graphAt + 650 : 250; // ③ 새 노란 바탕이 나타나는 때(ms)
+    const after = tween ? graphAt + 650 : 250; // ③ 새 색 바탕이 나타나는 때(ms)
     if (tween) {
       paintGraph(i - 1); // 이전 슬라이드 모양에서 시작
       later(() => tweenGraph(i - 1, i), graphAt);
@@ -1245,14 +1256,14 @@ main#demo-view {
     LLM.forEach((r, idx) => {
       const at = atOf(r);
       if (anim && i === at) {
-        // 이번에 채울 칸: 그때까지 빈칸(▢) 그대로 → ③에서 채우며 노란 바탕
+        // 이번에 채울 칸: 그때까지 빈칸(▢) 그대로 → ③에서 채우며 색 바탕
         setLine(idx, false, false);
         later(() => {
           setLine(idx, true, true);
           reveal(lineEl(idx));
         }, after);
       } else {
-        // 그 밖의 칸 (지난 슬라이드에 채운 칸은 여기서 노란 바탕이 빠지며 ①처럼 흐려진다)
+        // 그 밖의 칸 (지난 슬라이드에 채운 칸은 여기서 색 바탕이 빠지며 ①처럼 흐려진다)
         setLine(idx, i >= at, i === at);
       }
     });
@@ -1273,7 +1284,7 @@ main#demo-view {
         chips().forEach(reveal);
       }, after);
     } else if (anim && i - 1 === AT.g_pages && chips().length) {
-      chips().forEach((c) => c.classList.remove("new")); // ① 지난 슬라이드의 노란 바탕 지움
+      chips().forEach((c) => c.classList.remove("new")); // ① 지난 슬라이드의 색 바탕 지움
     } else {
       setPages(i >= AT.g_pages, i === AT.g_pages);
     }

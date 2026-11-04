@@ -300,7 +300,7 @@ const SLIDE_9 = {
       // ↓ 이번 경로가 아닌 주변 노드 (작게, 아주 연하게, 이름만)
       { id: "CPT-LIST", kind: "concept", title: "리스트", x: 40, y: -215 },
       { id: "CPT-FUNC", kind: "concept", title: "함수", x: 420, y: 215 },   // 원본에서 변수 쪽과 이어진 선이 없음
-      { id: "RES-FUNC", kind: "resource", title: "119~121쪽", x: 445, y: 45 }, // 원본 교과서 119~121쪽(함수 만들기·사용하기)
+      { id: "RES-FUNC", kind: "resource", title: "118쪽", x: 445, y: 45 },     // 함수와 이어진 교과서 118쪽
       { id: "MC-VAR-01b", kind: "card", x: -175, y: -195 },                 // 처음 값을 기억한다
       { id: "MC-VAR-10", kind: "card", x: -30, y: 250 },                    // 값 대신 이름이 나온다
       { id: "MC-VAR-SUM", kind: "card", x: 230, y: 235 },                   // 값이 누적된다 (시연용)
@@ -315,7 +315,7 @@ const SLIDE_9 = {
       { from: "MC-VAR-10", to: "CPT-VAR" },  // 원본: 값 대신 이름이 나온다 → 변수
       { from: "MC-VAR-01b", to: "CPT-VAR" }, // (원본은 → 변수 값 정하기)
       { from: "MC-VAR-SUM", to: "CPT-VAR" }, // 시연용
-      { from: "CPT-FUNC", to: "RES-FUNC" },  // 원본: 함수 → 교과서 119~121쪽
+      { from: "CPT-FUNC", to: "RES-FUNC" },  // 함수 → 교과서 118쪽
     ],
     path: {
       options: ["OPT-1", "OPT-2"], // 슬라이드 10
@@ -332,7 +332,7 @@ const SLIDE_9 = {
   //           "item"    → 문항에서 바로 (슬라이드 9)
   //           "card"    → 오개념 노드에 도착할 때 (슬라이드 11)
   //           "concept" → 정개념 노드에 도착할 때 (슬라이드 12)
-  //   그 슬라이드에서 새로 채워진 칸은 옅은 노란 바탕으로 표시됩니다.
+  //   그 슬라이드에서 새로 채워진 칸은 from에 따라 옅은 색 바탕(item 회색 · card 빨강 · concept 파랑)으로 표시됩니다.
   //   칸은 위에서부터 이 순서로 보입니다(정개념 바로 뒤에 정개념 설명).
   //   실제 시스템(proto/llm_feedback.py _payload_review)에서는 오른쪽 주석의 영어 칸 이름으로 들어갑니다.
   //   (실제 코드는 오개념 판정일 때 개념 이름과 카드의 correct_conception을 넣고 개념 definition은 넣지 않습니다.
