@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-  판정 시연 화면 : 오개념 사례 하나를 한 슬라이드씩(1~16) 보여 준다.
+  판정 시연 화면 : 오개념 사례 하나를 한 슬라이드씩(1~17) 보여 준다.
   - 화면에 보이는 글자와 데이터는 모두 data.js에 있다. 내용을 바꿀 때는 data.js만 고친다.
   - 이 파일은 화면 모양(CSS)과 동작(JS)만 담는다.
   - 넘기기: Enter · → · PageDown · 화면 클릭(휴대폰은 탭) / 이전: Backspace · ← · PageUp · 이전 버튼
@@ -484,21 +484,38 @@ main#demo-view {
 .fb-btn.press { transform: scale(0.94); }
 .fb-wrap.open .fb-btn { border-color: var(--ink); background: var(--ink); color: #fff; }
 .fb-wrap.open .fb-btn .arr { transform: rotate(180deg); }
-/* 틀린 문제들: 상자 옆에 열림. 화면보다 길면 이 칸 안에서 스크롤 */
-.fb-probs {
-  display: none;
-  position: relative;
-  flex: 0 1 620px;
-  min-width: 0;
-  max-height: max(380px, calc(100vh - 220px));
-  overflow-y: auto;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: #fafafa;
-  scrollbar-width: thin;
+/* 틀린 문제들: 상자 옆에 열림. 한 번에 한 문제씩, ‹ › 버튼으로 옆으로 넘김 */
+.fb-probs { display: none; flex: 0 1 620px; min-width: 0; }
+.fb-wrap.open .fb-probs { display: block; }
+/* 위 줄: "틀린 문제 1 / 2" + ‹ › */
+.fb-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 2px 10px; }
+.fb-pos { margin: 0; color: #666; font-size: 15px; font-weight: 700; }
+.fb-pos b { color: var(--ink); font-weight: 800; }
+.fb-arrows { display: flex; gap: 6px; }
+.fb-arr {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid #d4d4d8;
+  border-radius: 50%;
+  background: #fff;
+  color: #222;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.12s ease, opacity 0.2s ease;
 }
-.fb-wrap.open .fb-probs { display: grid; gap: 14px; }
+.fb-arr:hover:not(:disabled) { border-color: #a1a1aa; }
+.fb-arr:disabled { opacity: 0.35; cursor: default; }
+.fb-arr.press { transform: scale(0.9); border-color: var(--ink); background: var(--ink); color: #fff; }
+/* 문제 카드들을 옆으로 나란히 두고, 보이는 칸(.fb-view)을 옮겨 한 장씩 보여 준다 */
+.fb-view { overflow: hidden; border-radius: 14px; }
+.fb-track { display: flex; align-items: flex-start; transition: transform 0.5s ease; }
+.fb-track > .dq { flex: 0 0 100%; }
 @media (max-width: 1200px) {
   .fb-wrap { flex-wrap: wrap; }
   .fb-probs { flex-basis: 100%; }
@@ -516,7 +533,7 @@ main#demo-view {
   /* 휴대폰: 피드백 상자 → 버튼 → 틀린 문제 카드, 위→아래로 */
   .fb-wrap { flex-direction: column; align-items: stretch; gap: 12px; }
   .fb-box { width: auto; padding: 16px 16px; }
-  .fb-probs { flex: none; max-height: none; overflow: visible; padding: 0; border: 0; background: none; }
+  .fb-probs { flex: none; }
   #demo-q0.show.center { transform: none; }
   .dq { padding: 14px 12px; }
   .dq-stem { font-size: 17px; }
@@ -654,7 +671,7 @@ main#demo-view {
   }
 
   /* =======================================================================
-   * 1. 슬라이드 정의 (1~16)
+   * 1. 슬라이드 정의 (1~17)
    *    각 슬라이드에서 화면이 어떻게 바뀌는지는 아래 함수들이 이 이름(key)을 보고 정한다.
    *    글자는 data.js의 SLIDE_N (N = 번호).
    * ======================================================================= */
@@ -674,7 +691,8 @@ main#demo-view {
     { key: "g_pages", phase: "search" },   // 13 교과서 노드 → 학습 자료 칸
     { key: "send", phase: "search" },      // 14 LLM으로 보냄
     { key: "feedback", phase: "fb" },      // 15 피드백 상자 + 틀린 문제 보기 버튼
-    { key: "fb_problem", phase: "fb" },    // 16 버튼을 누름 → 틀린 문제가 열림
+    { key: "fb_problem", phase: "fb" },    // 16 버튼을 누름 → 틀린 문제(첫 번째)가 열림
+    { key: "fb_next", phase: "fb" },       // 17 › 를 누름 → 다음 틀린 문제로 넘어감
   ];
   const AT = {}; // 슬라이드 이름 → 번호(0부터)
   STEPS.forEach((s, i) => (AT[s.key] = i));
@@ -759,8 +777,6 @@ main#demo-view {
     S.timers = [];
     if (S.raf) cancelAnimationFrame(S.raf); // 그래프 색이 바뀌는 중이면 멈춤
     S.raf = 0;
-    if (S.scrollRaf) cancelAnimationFrame(S.scrollRaf); // 틀린 문제 칸이 내려가는 중이면 멈춤
-    S.scrollRaf = 0;
   }
   // 움직임 없이 바로 바꾸기
   function instant(fn) {
@@ -1341,7 +1357,13 @@ main#demo-view {
           <div class="fb-rule fb-in" style="--i:${sum.length}"></div>
           ${paras.map((t, k) => `<p class="fb-text fb-in" style="--i:${sum.length + 1 + k}">${rich(t)}</p>`).join("")}
         </section>
-        <div class="fb-probs">${probs.map((p) => `<article class="dq graded">${questionHtml(p, { graded: true, mark })}</article>`).join("")}</div>
+        <div class="fb-probs">
+          <div class="fb-nav">
+            <p class="fb-pos"></p>
+            <div class="fb-arrows"><button type="button" class="fb-arr prev" aria-label="이전 문제">‹</button><button type="button" class="fb-arr next" aria-label="다음 문제">›</button></div>
+          </div>
+          <div class="fb-view"><div class="fb-track">${probs.map((p) => `<article class="dq graded">${questionHtml(p, { graded: true, mark })}</article>`).join("")}</div></div>
+        </div>
       </div>`;
     const box = el("demo-fb").querySelector(".fb-box");
     if (anim) {
@@ -1352,33 +1374,35 @@ main#demo-view {
     }
   }
 
-  // 틀린 문제 칸 안에서 target 문제가 위에 오도록 부드럽게 내린다(칸이 다 보이면 그대로)
-  function scrollPanel(panel, target, dur) {
-    if (!target) return;
-    const max = panel.scrollHeight - panel.clientHeight;
-    if (max <= 0) return;
-    const from = panel.scrollTop;
-    const to = Math.min(max, target.offsetTop - 12);
-    let t0 = 0;
-    const step = (now) => {
-      if (!t0) t0 = now;
-      const p = Math.min(1, Math.max(0, (now - t0) / dur));
-      const e = p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2; // 천천히 → 빠르게 → 천천히
-      panel.scrollTop = from + (to - from) * e;
-      if (p < 1) S.scrollRaf = requestAnimationFrame(step);
+  // 틀린 문제 칸에서 k번째(0부터) 문제를 보여 준다: 카드 줄을 옆으로 옮기고, 위 줄 글자·버튼을 맞춘다
+  //   anim이면 누른 쪽 버튼(› 또는 ‹)이 눌리는 모양(0.16초) → 옆으로 미끄러짐(0.5초)
+  function showProblem(k, anim) {
+    const wrap = el("demo-fb").querySelector(".fb-wrap");
+    const track = wrap.querySelector(".fb-track");
+    const n = track.children.length;
+    const go = () => {
+      wrap.dataset.k = k;
+      track.style.transform = `translateX(${-100 * k}%)`;
+      wrap.querySelector(".fb-pos").innerHTML = rich(slide("fb_problem").posText || "틀린 문제 **{번호}** / {개수}", { 번호: k + 1, 개수: n });
+      wrap.querySelector(".fb-arr.prev").disabled = k <= 0;
+      wrap.querySelector(".fb-arr.next").disabled = k >= n - 1;
     };
-    S.scrollRaf = requestAnimationFrame(step);
+    if (!anim) return instant(go);
+    const btn = wrap.querySelector(k > Number(wrap.dataset.k || 0) ? ".fb-arr.next" : ".fb-arr.prev");
+    btn.classList.add("press"); // 눌리는 모양
+    later(() => {
+      btn.classList.remove("press");
+      go();
+    }, 160);
   }
 
   // 틀린 문제 칸 열기·닫기
-  //   anim: 버튼이 눌리는 모양(0.16초) → 피드백 상자가 왼쪽으로 비켜나고(0.5초) → 문제 카드가 차례로 들어옴
-  //         → 1.6초 뒤 칸 안에서 아래로 내려 다음 문제를 보여 줌(1.4초)
-  //   닫을 때는 반대로: 카드가 빠지고 → 상자가 제자리로
+  //   anim: '틀린 문제 보기'가 눌리는 모양(0.16초) → 피드백 상자가 왼쪽으로 비켜나고(0.5초) → 첫 문제가 들어옴
+  //   닫을 때는 반대로: 문제가 빠지고 → 상자가 제자리로
   function setProblemOpen(open, anim) {
     const wrap = el("demo-fb").querySelector(".fb-wrap");
     if (!wrap) return;
-    const panel = wrap.querySelector(".fb-probs");
-    const cards = [...panel.querySelectorAll(".dq")];
+    const cards = [...wrap.querySelectorAll(".fb-track > .dq")];
     const btn = wrap.querySelector(".fb-btn");
     const box = wrap.querySelector(".fb-box");
     box.style.transform = "";
@@ -1388,7 +1412,6 @@ main#demo-view {
         wrap.classList.toggle("open", open);
         cards.forEach((c) => c.classList.toggle("show", open));
       });
-      panel.scrollTop = 0;
       return;
     }
     // 자리 바꾸기: 바뀌기 전 위치에서 출발해 새 위치로 미끄러진다
@@ -1410,15 +1433,29 @@ main#demo-view {
     later(() => {
       btn.classList.remove("press");
       if (open) {
-        panel.scrollTop = 0;
+        showProblem(0, false); // 열 때는 늘 첫 문제부터
         move();
-        cards.forEach((c, k) => later(() => c.classList.add("show"), 150 + k * 120));
-        later(() => scrollPanel(panel, cards[1], 1400), 1600);
+        later(() => cards.forEach((c) => c.classList.add("show")), 150);
       } else {
         cards.forEach((c) => c.classList.remove("show"));
         later(move, 300);
       }
     }, 160);
+  }
+
+  // 슬라이드 15~17의 피드백 화면: 15 닫힘 · 16 열림(첫 문제) · 17 열림(다음 문제)
+  //   넘겨 왔을 때(anim)는 바뀌는 것 하나만 움직인다(열기/닫기 또는 문제 넘기기)
+  function applyFeedback(i, anim) {
+    const wrap = el("demo-fb").querySelector(".fb-wrap");
+    const open = i >= AT.fb_problem;
+    const k = i >= AT.fb_next ? 1 : 0;
+    if (!anim) {
+      setProblemOpen(open, false);
+      showProblem(open ? k : 0, false);
+      return;
+    }
+    if (wrap.classList.contains("open") !== open) setProblemOpen(open, true);
+    else if (open) showProblem(k, true);
   }
 
   /* =======================================================================
@@ -1443,7 +1480,8 @@ main#demo-view {
     g_pages: [["#demo-graph", 0], ["#demo-llm", 900]],
     send: [["#demo-llm", 0]],
     feedback: [["top", 0]],
-    fb_problem: [["#demo-fb .fb-probs", 500, "start"], ["#demo-fb .fb-probs .dq + .dq", 2000, "start"]],
+    fb_problem: [["#demo-fb .fb-probs", 500, "start"]],
+    fb_next: [["#demo-fb .fb-probs", 0, "start"]],
   };
 
   function focusStep(i, anim) {
@@ -1492,10 +1530,10 @@ main#demo-view {
       if (anim) applySearch(i, true);
       else instant(() => applySearch(i, false));
     } else {
-      // 15 ↔ 16은 같은 화면에서 문제 카드만 열고 닫는다(피드백은 다시 그리지 않음)
+      // 15 ~ 17은 같은 화면에서 문제 칸만 열고 닫고 넘긴다(피드백은 다시 그리지 않음)
       const fresh = !wasFb || !el("demo-fb").querySelector(".fb-wrap");
       if (fresh) renderFeedback(anim);
-      setProblemOpen(i === AT.fb_problem, anim && !fresh);
+      applyFeedback(i, anim && !fresh);
     }
     focusStep(i, anim);
   }
@@ -1542,13 +1580,21 @@ main#demo-view {
     if (e.target.closest("button, a, input, textarea, select")) return;
     next();
   });
-  // 피드백의 '틀린 문제 보기' 버튼: 슬라이드 15에서 누르면 16(문제 열림), 16에서 누르면 15(닫힘)
+  // 피드백 화면의 버튼
+  //   '틀린 문제 보기': 15에서 누르면 16(열림), 16·17에서 누르면 15(닫힘)
+  //   › : 16에서 누르면 17(다음 문제) · ‹ : 17에서 누르면 16(첫 문제)
   el("demo-fb").addEventListener("click", (e) => {
-    const b = e.target.closest(".fb-btn");
+    const b = e.target.closest(".fb-btn, .fb-arr");
     if (!b) return;
     b.blur();
-    if (S.step === AT.feedback) next();
-    else if (S.step === AT.fb_problem) render(AT.feedback, true);
+    if (b.classList.contains("fb-btn")) {
+      if (S.step === AT.feedback) next();
+      else if (S.step >= AT.fb_problem) render(AT.feedback, true);
+    } else if (b.classList.contains("next") && S.step === AT.fb_problem) {
+      next();
+    } else if (b.classList.contains("prev") && S.step === AT.fb_next) {
+      render(AT.fb_problem, true);
+    }
   });
   el("demo-prev").addEventListener("click", (e) => {
     e.currentTarget.blur();
