@@ -135,27 +135,27 @@ main#demo-view {
 .blk {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  min-height: 30px;
-  padding: 3px 5px 3px 10px;
+  gap: 7px;
+  min-height: 35px;
+  padding: 4px 6px 4px 12px;
   border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 15px;
+  border-radius: 18px;
   color: #fff;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   line-height: 1.2;
   white-space: nowrap;
 }
 /* 시작 블록: 왼쪽에 흰 동그라미 안 초록 ▶ */
-.blk.hat { padding: 3px 14px 3px 4px; background: var(--hat); border-color: var(--hat-dark); }
-.hat-ico { position: relative; flex: 0 0 auto; width: 22px; height: 22px; border-radius: 50%; background: #fff; }
+.blk.hat { padding: 4px 16px 4px 5px; background: var(--hat); border-color: var(--hat-dark); }
+.hat-ico { position: relative; flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%; background: #fff; }
 .hat-ico::after {
   content: "";
   position: absolute;
-  left: 8px;
-  top: 6px;
+  left: 9.5px;
+  top: 7px;
   border-style: solid;
-  border-width: 5px 0 5px 8px;
+  border-width: 6px 0 6px 9px;
   border-color: transparent transparent transparent var(--hat);
 }
 .blk.var { background: var(--var); border-color: var(--var-dark); }   /* 자료(변수): '정하기' */
@@ -169,11 +169,11 @@ main#demo-view {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 2px 8px;
-  border-radius: 8px;
+  padding: 2px 10px;
+  border-radius: 9px;
   background: var(--field);
   color: #333;
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 600;
 }
 .chip.dd { background: var(--var-dark); color: #fff; }
@@ -189,8 +189,9 @@ main#demo-view {
 .chip.rep { padding: 2px 8px 2px 3px; border: 1px solid var(--var-dark); border-radius: 12px; background: var(--var); color: #fff; }
 .chip.rep .chip.dd { background: var(--var-dark); }
 /* 블록 끝 동그라미 아이콘: 자료(?) · 생김새 */
-.blk-ico { display: inline-grid; place-items: center; flex: 0 0 auto; width: 20px; height: 20px; border-radius: 50%; }
-.blk-ico.q { background: rgba(255, 255, 255, 0.4); color: var(--var-dark); font-size: 12px; font-weight: 800; }
+.blk-ico { display: inline-grid; place-items: center; flex: 0 0 auto; width: 23px; height: 23px; border-radius: 50%; }
+.blk-ico.q { background: rgba(255, 255, 255, 0.4); color: var(--var-dark); font-size: 13px; font-weight: 800; }
+.blk-ico svg { width: 13px; height: 13px; }
 .blk-ico.lk { background: rgba(255, 255, 255, 0.3); }
 
 /* =========================================================================
@@ -199,7 +200,7 @@ main#demo-view {
 .demo-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
 .dq {
   min-width: 0;
-  padding: 16px 18px;
+  padding: 20px 22px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: #fff;
@@ -210,9 +211,9 @@ main#demo-view {
 .dq.show { opacity: 1; transform: none; }
 /* 문제 1만 있을 때(슬라이드 1~3)는 가운데 */
 #demo-q0.show.center { transform: translateX(calc(50% + 14px)); }
-.dq-no { margin: 0 0 6px; color: #999; font-size: 13px; font-weight: 700; }
+.dq-no { margin: 0 0 6px; color: #999; font-size: 14px; font-weight: 700; }
 .dq-mark { color: var(--wrong-ink); }
-.dq-stem { margin: 0 0 10px; font-size: 18px; font-weight: 700; line-height: 1.35; }
+.dq-stem { margin: 0 0 14px; font-size: 21px; font-weight: 700; line-height: 1.35; }
 .dq-code { margin: 0 0 12px; }
 
 /* 슬라이드 7에 문제·안 고른 선지를 접는 장치 */
@@ -225,25 +226,25 @@ main#demo-view {
 .dq.reduced .dfold:not(.keep) { grid-template-rows: 0fr; opacity: 0; }
 
 /* --- 선지 --- */
-.dq-opts .dopt { margin-bottom: 5px; }
+.dq-opts .dopt { margin-bottom: 6px; }
 .dopt {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0 8px;
-  padding: 8px 12px;
+  gap: 0 10px;
+  padding: 10px 14px;
   border: 1px solid #eee;
   border-radius: 10px;
   background: #fff;
-  font-size: 15px;
+  font-size: 17px;
   transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 .dopt-text { flex: 1; min-width: 0; }
 .dradio {
   position: relative;
   flex: 0 0 auto;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border: 1.5px solid #bbb;
   border-radius: 50%;
   background: #fff;
@@ -253,7 +254,7 @@ main#demo-view {
 .dradio::after {
   content: "";
   position: absolute;
-  inset: 2.5px;
+  inset: 3px;
   border-radius: 50%;
   background: var(--pick);
   transform: scale(0);
@@ -289,8 +290,8 @@ main#demo-view {
 
 /* --- 확신도 : "확신도" 제목 줄 + ○ 확실해요 · ○ 조금 확실해요 · ○ 잘 모르겠어요 --- */
 .dq-conf { margin-top: 12px; }
-.dq-conf-h { margin: 0 0 6px; font-size: 14px; font-weight: 700; }
-.dq-conf-row { display: flex; flex-wrap: wrap; align-items: center; color: #444; font-size: 14px; }
+.dq-conf-h { margin: 0 0 6px; font-size: 15px; font-weight: 700; }
+.dq-conf-row { display: flex; flex-wrap: wrap; align-items: center; color: #444; font-size: 16px; }
 .dconf {
   display: inline-flex;
   align-items: center;
@@ -333,7 +334,7 @@ main#demo-view {
   border-radius: 10px;
   background: var(--wrong-bg);
   color: var(--wrong-ink);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
 }
 .jchip b { font-weight: 800; }
@@ -342,7 +343,7 @@ main#demo-view {
 .jrule-h { margin: 0; font-size: 15px; font-weight: 800; }
 .jrule-note { margin: 2px 0 10px; color: #777; font-size: 12px; }
 .jrule ul { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
-.jrule li { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.jrule li { display: flex; align-items: center; gap: 8px; font-size: 15px; }
 /* ✓ 동그라미 */
 .jcheck {
   display: inline-grid;
@@ -413,17 +414,21 @@ main#demo-view {
 .demo-page.enter { opacity: 0; transform: translateY(4px); background: #fff; }
 
 /* =========================================================================
- * 6. 피드백 (슬라이드 15) : 위에 문제 카드, 바로 아래 피드백 한 문단
+ * 6. 피드백 (슬라이드 15) : 문제 카드 안, 선지·확신도 아래 회색 상자에 피드백 한 문단
  * ========================================================================= */
 .fb-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; max-width: 1040px; margin: 0 auto; }
 /* 피드백 화면의 문제 카드: 높이를 줄이려고 카드 안을 왼쪽(문제·코드) | 오른쪽(선지·확신도)으로 나눈다 */
 .fb-q { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); column-gap: 24px; align-items: start; }
 .fb-q > .dq-no { grid-column: 1 / -1; }
-.fb-q > .dfold { grid-column: 1; grid-row: 2 / span 2; }
+.fb-q > .dfold { grid-column: 1; grid-row: 2 / span 3; }
 .fb-q > .dq-opts { grid-column: 2; grid-row: 2; }
 .fb-q > .dq-conf { grid-column: 2; grid-row: 3; margin-top: 6px; }
-.fb-panel { padding: 18px 20px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
-.fb-h { margin: 0 0 14px; color: #999; font-size: 13px; font-weight: 700; }
+.fb-q > .fb-box { grid-column: 2; grid-row: 4; }
+/* 피드백: 선지·확신도 바로 아래 회색 상자 */
+.fb-box { margin-top: 14px; padding: 14px 16px; border-radius: 10px; background: #f4f5f7; }
+.fb-box .fb-para { padding: 0; }
+.fb-box .fb-pages { margin: 12px 0 0; border-top-color: #e3e5e9; }
+.fb-h { margin: 0 0 6px; color: #888; font-size: 13px; font-weight: 700; }
 /* 문단 → 문단 → 문단 → 교과서 쪽 줄 순서로 차례로 나타남(--i = 순서, 판정 상자와 같은 0.25초 간격) */
 .fb-para, .fb-pages {
   opacity: 0;
@@ -469,8 +474,10 @@ main#demo-view {
   .fb-q { display: block; }
   #demo-q0.show.center { transform: none; }
   .dq { padding: 14px 12px; }
-  .dq-stem { font-size: 16px; }
-  .blk { flex-wrap: wrap; white-space: normal; }
+  .dq-stem { font-size: 17px; }
+  .blk { flex-wrap: wrap; white-space: normal; font-size: 13px; min-height: 30px; }
+  .chip { font-size: 12.5px; }
+  .dopt { font-size: 15px; padding: 8px 12px; }
   /* 판정 상자: 위→아래로, 화살표도 아래 방향 */
   .jrow { flex-direction: column; align-items: stretch; gap: 10px; }
   .jarrow { font-size: 0; }
@@ -478,7 +485,7 @@ main#demo-view {
   .jrule { min-width: 0; }
   .demo-graph { height: 600px; }
   .jl { grid-template-columns: 76px minmax(0, 1fr); }
-  .fb-panel { padding: 14px 14px; }
+  .fb-box { padding: 12px 12px; }
   .fb-text { font-size: 16px; }
   .demo-explain { bottom: 0; margin: 20px -16px 0; padding: 10px 16px 12px; border-width: 1px 0 0; border-radius: 14px 14px 0 0; }
   .demo-text { font-size: 14px; }
@@ -872,111 +879,115 @@ main#demo-view {
   /* =======================================================================
    * 5. 그래프 (슬라이드 9~13) — data.js SLIDE_9.graph
    * ======================================================================= */
-  // 노드 종류별 색 (범례 글자는 data.js SLIDE_9.legend)
+  // 노드 종류별 색 — 바탕(bg)·테두리(border). 보내 준 '그래프RAG 탐색' 그림과 같은 색
   const KIND = {
-    option: { bg: "#f3f4f6", border: "#4b5563" },
-    card: { bg: "#fee2e2", border: "#dc2626" },
-    concept: { bg: "#dbeafe", border: "#2563eb" },
-    resource: { bg: "#dcfce7", border: "#16a34a" },
+    option: { bg: "#f5f5f5", border: "#666666" },   // 학생이 고른 선지: 회색
+    card: { bg: "#f8cecc", border: "#b85450" },     // 오개념: 빨강
+    concept: { bg: "#dae8fc", border: "#6c8ebf" },  // 정개념: 파랑
+    resource: { bg: "#d5e8d4", border: "#82b366" }, // 학습 자료: 초록
   };
-  const NARROW_GRAPH = 640; // 그래프 칸이 이보다 좁으면(휴대폰) 위→아래로 놓고 경로 밖 노드는 숨긴다
+  const RADIUS = { option: 40, card: 50, concept: 48, resource: 42 }; // 찾아가는 노드(큰 원) 반지름
+  const FAINT_R = 15; // 주변 노드(작은 원) 반지름
+  const NARROW_GRAPH = 640; // 그래프 칸이 이보다 좁으면(휴대폰) 위→아래로 놓고 주변 노드는 숨긴다
   const FACE = "Pretendard, sans-serif";
-  // 노드 글자는 원 아래에 나온다. background: 글자 뒤 바탕(선이 글자 위로 지나가 보이지 않게)
+  // 원 아래 이름 글자. background: 글자 뒤 바탕(선이 글자 위로 지나가 보이지 않게)
   const LABEL_BG = "rgba(252, 252, 253, 0.92)";
-  const nodeFont = (color) => ({ size: 18, face: FACE, color, multi: "html", vadjust: 2, background: LABEL_BG, bold: { size: 19, face: FACE, color, mod: "bold" } });
-  const EDGE_FONT = { size: 16, face: FACE, strokeWidth: 4, strokeColor: "#fff" };
+  const capFont = (color, size) => ({ size, face: FACE, color, vadjust: 4, background: LABEL_BG });
 
   const onPath = (id) => {
     const p = G.path;
     return p.options.includes(id) || id === p.card || id === p.concept || p.resources.includes(id);
   };
 
-  // 노드 글자: 굵은 첫 줄 + 둘째 줄 (비어 있으면 문제·오개념·교과서 쪽에서 자동으로 채운다)
-  function nodeLabel(n) {
-    let title = plain(n.title);
-    let desc = plain(n.desc);
+  // 원 안 글자 (찾아가는 노드만): data.js SLIDE_9.nodeText
+  function innerText(n) {
+    if (!onPath(n.id)) return "";
+    const T = SEARCH.nodeText || {};
     if (n.kind === "option") {
       const p = problemNo(n.problem);
       const o = chosenOpt(p);
-      title = title || plain(SEARCH.optionNode, { 번호: p.no, 선지: CIRCLED[o.key] || o.key });
-      desc = desc || o.text;
-    } else if (n.kind === "card") {
-      const m = mcOf(n.id);
-      title = title || m.name;
-      desc = desc || m.desc;
-    } else if (n.kind === "resource" && !desc) {
-      const i = G.path.resources.indexOf(n.id);
-      const pg = (PAGES.pages || [])[i];
-      if (pg != null) desc = plain(FB.pageText || "{쪽}쪽", { 쪽: pg });
+      return plain(T.option ?? "문제{번호}\n{선지}", { 번호: p.no, 선지: CIRCLED[o.key] || o.key });
     }
-    return desc ? `<b>${title}</b>\n${desc}` : `<b>${title}</b>`;
+    return plain(T[n.kind] ?? "");
   }
 
-  // 노드 모양: 원 (size = 반지름)
-  // st: dim(흐림, 회색 원) · lit(지금 찾음, 조금 큰 종류 색 원) · done(지나옴, 종류 색 원)
-  //   테두리 링·그림자 없이 색과 크기만 바뀐다
-  function nodeStyle(kind, st) {
-    const c = KIND[kind] || KIND.concept;
-    if (st === "dim") {
-      return { size: 16, color: { background: "#e5e7eb", border: "#d1d5db" }, borderWidth: 1, font: nodeFont("#a3a3a3"), shadow: false };
+  // 원 아래 이름: 오개념 이름 · 교과서 쪽 · 그 밖은 title
+  function caption(n) {
+    if (n.kind === "card") return mcOf(n.id).name || "";
+    if (n.kind === "resource" && !n.title) {
+      const pg = (PAGES.pages || [])[G.path.resources.indexOf(n.id)];
+      return pg != null ? plain(FB.pageText || "{쪽}쪽", { 쪽: pg }) : "";
     }
+    return plain(n.title || "");
+  }
+
+  // 노드 모양 (size = 반지름, ink = 원 안 글자 색)
+  //   faint: 주변 노드(작고 아주 연하게) · dim: 찾아가는 노드인데 아직(회색)
+  //   lit: 지금 찾음(진한 테두리, 조금 큼) · done: 지나옴(종류 색)
+  function nodeStyle(n, st) {
+    if (st === "faint") {
+      return { size: FAINT_R, color: { background: "#ffffff", border: "#e1e4e8" }, borderWidth: 1.5, font: capFont("#c4c8ce", 14), ink: "#ffffff", shadow: false };
+    }
+    const c = KIND[n.kind] || KIND.concept;
+    const r = RADIUS[n.kind] || 44;
+    if (st === "dim") {
+      return { size: r, color: { background: "#f4f4f5", border: "#d4d4d8" }, borderWidth: 1.5, font: capFont("#b4b4bb", 16), ink: "#a1a1aa", shadow: false };
+    }
+    const lit = st === "lit";
     return {
-      size: st === "lit" ? 21 : 18,
-      color: { background: c.border, border: c.border },
-      borderWidth: 1,
-      font: nodeFont("#111"),
+      size: lit ? r * 1.08 : r,
+      color: { background: c.bg, border: c.border },
+      borderWidth: lit ? 3.5 : 2,
+      font: capFont("#27272a", 16),
+      ink: "#111111",
       shadow: false,
     };
   }
+  // 슬라이드 상태(st)에서 노드 하나의 모양 이름
+  const nodeSt = (n, st) => (onPath(n.id) ? st.nodes[n.id] || "dim" : "faint");
 
+  // 선 모양 (글자 없음): faint 주변 선 · dim 찾아갈 길(아직) · lit 지금 따라가는 길 · done 지나온 길
   function edgeStyle(st) {
-    // background: 글자 뒤로 선이 비쳐 "관련·개념"처럼 보이지 않게 그래프 바탕색을 깐다
-    if (st === "lit") return { color: { color: "#f59e0b" }, width: 3, font: { ...EDGE_FONT, color: "#b45309", background: "#fcfcfd" } };
-    if (st === "done") return { color: { color: "#9ca3af" }, width: 2, font: { ...EDGE_FONT, color: "#6b7280", background: "#fcfcfd" } };
-    // 흐린 선은 글자를 숨긴다(경로 위 글자와 겹치지 않게)
-    return { color: { color: "#e5e5e5" }, width: 1, font: { ...EDGE_FONT, color: "rgba(0,0,0,0)", strokeWidth: 0 } };
+    if (st === "lit") return { color: { color: "#f59e0b" }, width: 3 };
+    if (st === "done") return { color: { color: "#3f3f46" }, width: 1.8 };
+    if (st === "dim") return { color: { color: "#d9dbe0" }, width: 1.5 };
+    return { color: { color: "#eceef1" }, width: 1.2 };
   }
+  const edgeSt = (id, st) => st.edges[id] || (S.pathEdges.has(id) ? "dim" : "faint");
 
   // 노드 위치
-  //   넓은 화면: 왼쪽부터 선지 → 오개념 → 개념 → 교과서, 경로 밖 노드는 위아래 (노드에 x, y가 있으면 그 자리)
-  //   좁은 화면: 위부터 선지 → 오개념 → 개념 → 교과서, 경로 밖 노드는 숨김
-  //   가로로 넓게 벌리면 그래프 전체가 작게 줄어드니 간격은 좁게 둔다.
+  //   넓은 화면(보내 준 그림 배치): 선지 두 개는 왼쪽 위·아래 → 오개념 → 정개념 → 학습 자료는 오른쪽 위
+  //             주변 노드는 data.js의 x, y (없으면 빈자리)
+  //   좁은 화면: 위부터 선지 → 오개념 → 정개념 → 학습 자료, 주변 노드는 숨김
   function positions(narrow) {
     const p = G.path;
     const pos = {};
-    const spread = (ids, gap, put) => ids.forEach((id, i) => (pos[id] = put((i - (ids.length - 1) / 2) * gap)));
+    const spread = (ids, gap, put) => ids.forEach((id, i) => (pos[id] = put((i - (ids.length - 1) / 2) * gap, i)));
     if (narrow) {
-      // 원 아래 글자 자리를 두고 위아래 간격을 넉넉히
-      spread(p.options, 210, (x) => ({ x, y: -390 }));
+      spread(p.options, 200, (x) => ({ x, y: -400 }));
       pos[p.card] = { x: 0, y: -185 };
-      pos[p.concept] = { x: 0, y: 55 };
-      spread(p.resources, 220, (x) => ({ x, y: 245 }));
+      pos[p.concept] = { x: 0, y: 45 };
+      spread(p.resources, 200, (x) => ({ x, y: 265 }));
       G.nodes.forEach((n) => (pos[n.id] = pos[n.id] || { x: 0, y: 0 }));
       return pos;
     }
-    spread(p.options, 190, (y) => ({ x: -390, y }));
-    pos[p.card] = { x: -140, y: 0 };
-    pos[p.concept] = { x: 135, y: 0 };
-    spread(p.resources, 190, (y) => ({ x: 345, y }));
-    const conceptY = [-230, 230, -360, 360];
-    const cardY = [250, -250, 380, -380];
-    let ci = 0;
-    let ki = 0;
-    let ri = 0;
+    spread(p.options, 240, (y) => ({ x: -350, y: y + 10 }));
+    pos[p.card] = { x: -110, y: 20 };
+    pos[p.concept] = { x: 140, y: 20 };
+    spread(p.resources, 160, (x) => ({ x: 320 + x, y: -150 }));
+    const slots = [[0, -230], [0, 250], [-200, -220], [300, 230], [-200, 250], [380, 60]];
+    let k = 0;
     G.nodes.forEach((n) => {
-      if (n.x != null && n.y != null) {
-        pos[n.id] = { x: n.x, y: n.y };
-        return;
+      if (n.x != null && n.y != null) pos[n.id] = { x: n.x, y: n.y };
+      else if (!pos[n.id]) {
+        const [x, y] = slots[k++ % slots.length];
+        pos[n.id] = { x, y };
       }
-      if (pos[n.id]) return;
-      if (n.kind === "card") pos[n.id] = { x: -140, y: cardY[ki++ % cardY.length] };
-      else if (n.kind === "resource") pos[n.id] = { x: 345, y: 280 + 130 * ri++ };
-      else pos[n.id] = { x: 135, y: conceptY[ci++ % conceptY.length] };
     });
     return pos;
   }
 
-  // 슬라이드 i에서 노드·선 상태
+  // 슬라이드 i에서 찾아가는 노드·선 상태
   function graphState(i) {
     const p = G.path;
     const nodes = {};
@@ -998,12 +1009,38 @@ main#demo-view {
     return { nodes, edges };
   }
 
+  // 범례: data.js SLIDE_9.legend가 있을 때만 (지금은 원 안 글자로 종류를 보여 주므로 쓰지 않음)
   function buildLegend() {
-    const L = SEARCH.legend || {};
+    const L = SEARCH.legend;
+    el("demo-legend").hidden = !L;
+    if (!L) return;
     el("demo-legend").innerHTML =
       Object.entries(KIND)
         .map(([k, c]) => `<span><i style="background:${c.border}"></i>${rich(L[k] || k)}</span>`)
         .join("") + `<span><i class="trail"></i>${rich(L.trail || "")}</span>`;
+  }
+
+  // 원 안 글자는 vis가 그리지 않으므로, 그래프를 그릴 때마다 그 위에 직접 쓴다
+  function drawInner(ctx) {
+    const pos = S.net.getPositions();
+    S.nodes.get({ filter: (n) => n.inner && !n.hidden }).forEach((n) => {
+      const p = pos[n.id];
+      const rows = n.inner.split("\n");
+      const lh = n.innerSize * 1.2;
+      ctx.save();
+      ctx.font = `700 ${n.innerSize}px ${FACE}`;
+      ctx.fillStyle = n.ink;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      rows.forEach((row, k) => ctx.fillText(row, p.x, p.y + (k - (rows.length - 1) / 2) * lh));
+      ctx.restore();
+    });
+  }
+
+  // 화면을 그래프 전체에 맞추고 가장자리에 여백을 조금 둔다
+  function fitView() {
+    S.net.fit({ animation: false });
+    S.net.moveTo({ scale: S.net.getScale() * 0.92, animation: false });
   }
 
   function buildGraph(narrow) {
@@ -1011,26 +1048,43 @@ main#demo-view {
     const pos = positions(narrow);
     S.narrow = narrow;
     S.nodes = new vis.DataSet(
-      G.nodes.map((n) => ({
-        id: n.id,
-        label: nodeLabel(n),
-        x: pos[n.id].x,
-        y: pos[n.id].y,
-        hidden: narrow && !onPath(n.id),
-        fixed: true,
-        shape: "dot", // 원 (글자는 원 아래)
-        widthConstraint: { maximum: narrow ? 165 : n.kind === "card" ? 200 : 170 },
-        ...nodeStyle(n.kind, "dim"),
-      }))
+      G.nodes.map((n) => {
+        const cap = caption(n);
+        return {
+          id: n.id,
+          label: cap || undefined,
+          inner: innerText(n),
+          innerSize: n.kind === "option" ? 17 : 20,
+          x: pos[n.id].x,
+          y: pos[n.id].y,
+          hidden: narrow && !onPath(n.id),
+          fixed: true,
+          shape: "dot", // 원 (이름은 원 아래, 원 안 글자는 drawInner)
+          widthConstraint: { maximum: 170 },
+          ...nodeStyle(n, onPath(n.id) ? "dim" : "faint"),
+        };
+      })
     );
-    S.edgeIds = { opt: [], card: [], res: [] }; // 경로 위의 선
+    S.edgeIds = { opt: [], card: [], res: [] }; // 찾아가는 길 위의 선
+    S.pathEdges = new Set();
     S.edges = new vis.DataSet(
       G.edges.map((e, i) => {
         const id = `de${i}`;
         if (p.options.includes(e.from) && e.to === p.card) S.edgeIds.opt.push(id);
         if (e.from === p.card && e.to === p.concept) S.edgeIds.card.push(id);
         if (e.from === p.concept && p.resources.includes(e.to)) S.edgeIds.res.push(id);
-        return { id, from: e.from, to: e.to, label: e.label || undefined, arrows: "to", smooth: false, ...edgeStyle("dim") };
+        const onTrail = S.edgeIds.opt.includes(id) || S.edgeIds.card.includes(id) || S.edgeIds.res.includes(id);
+        if (onTrail) S.pathEdges.add(id);
+        return {
+          id,
+          from: e.from,
+          to: e.to,
+          label: e.label || undefined,
+          arrows: { to: { enabled: true, scaleFactor: 0.6 } },
+          smooth: false,
+          font: { size: 14, face: FACE, color: "#9ca3af", strokeWidth: 3, strokeColor: "#fff" },
+          ...edgeStyle(onTrail ? "dim" : "faint"),
+        };
       })
     );
     S.net = new vis.Network(
@@ -1042,7 +1096,8 @@ main#demo-view {
         interaction: { dragNodes: false, dragView: false, zoomView: false, selectable: false, hover: false },
       }
     );
-    S.net.fit({ animation: false, padding: 24 });
+    S.net.on("afterDrawing", drawInner);
+    fitView();
   }
 
   // 그래프를 칸 크기에 맞춘다. 넓은↔좁은 배치가 바뀌면 새로 그린다. (그래프 칸이 보일 때만)
@@ -1061,15 +1116,15 @@ main#demo-view {
     if (!S.net) buildGraph(narrow);
     else if (refit) {
       S.net.setSize("100%", "100%");
-      S.net.fit({ animation: false, padding: 24 });
+      fitView();
     }
     return true;
   }
 
   function paintGraph(i) {
     const st = graphState(i);
-    S.nodes.update(G.nodes.map((n) => ({ id: n.id, ...nodeStyle(n.kind, st.nodes[n.id] || "dim") })));
-    S.edges.update(S.edges.getIds().map((id) => ({ id, ...edgeStyle(st.edges[id] || "dim") })));
+    S.nodes.update(G.nodes.map((n) => ({ id: n.id, ...nodeStyle(n, nodeSt(n, st)) })));
+    S.edges.update(S.edges.getIds().map((id) => ({ id, ...edgeStyle(edgeSt(id, st)) })));
   }
 
   // ----- 그래프 색이 서서히 바뀌는 움직임 -----
@@ -1089,44 +1144,36 @@ main#demo-view {
     const y = rgba(b);
     return `rgba(${[0, 1, 2].map((k) => Math.round(mixNum(x[k], y[k], t))).join(", ")}, ${mixNum(x[3], y[3], t).toFixed(3)})`;
   }
-  function mixNode(kind, sa, sb, t) {
-    const A = nodeStyle(kind, sa);
-    const B = nodeStyle(kind, sb);
+  function mixNode(n, sa, sb, t) {
+    const A = nodeStyle(n, sa);
+    const B = nodeStyle(n, sb);
     return {
       size: mixNum(A.size, B.size, t),
       borderWidth: mixNum(A.borderWidth, B.borderWidth, t),
       color: { background: mixColor(A.color.background, B.color.background, t), border: mixColor(A.color.border, B.color.border, t) },
-      font: { ...B.font, color: mixColor(A.font.color, B.font.color, t), bold: { ...B.font.bold, color: mixColor(A.font.bold.color, B.font.bold.color, t) } },
+      font: { ...B.font, color: mixColor(A.font.color, B.font.color, t) },
+      ink: mixColor(A.ink, B.ink, t),
       shadow: false,
     };
   }
   function mixEdge(sa, sb, t) {
     const A = edgeStyle(sa);
     const B = edgeStyle(sb);
-    return {
-      color: { color: mixColor(A.color.color, B.color.color, t) },
-      width: mixNum(A.width, B.width, t),
-      font: {
-        ...B.font,
-        color: mixColor(A.font.color, B.font.color, t),
-        strokeWidth: mixNum(A.font.strokeWidth ?? 4, B.font.strokeWidth ?? 4, t),
-        background: t < 0.3 ? A.font.background : B.font.background,
-      },
-    };
+    return { color: { color: mixColor(A.color.color, B.color.color, t) }, width: mixNum(A.width, B.width, t) };
   }
   // 슬라이드 from의 그래프 모양에서 to의 모양으로 ms 동안 서서히 바꾼다 (바뀌는 노드·선만)
   function tweenGraph(from, to, ms = 550) {
     const a = graphState(from);
     const b = graphState(to);
-    const nodes = G.nodes.filter((n) => (a.nodes[n.id] || "dim") !== (b.nodes[n.id] || "dim"));
-    const edges = S.edges.getIds().filter((id) => (a.edges[id] || "dim") !== (b.edges[id] || "dim"));
+    const nodes = G.nodes.filter((n) => nodeSt(n, a) !== nodeSt(n, b));
+    const edges = S.edges.getIds().filter((id) => edgeSt(id, a) !== edgeSt(id, b));
     let t0 = null; // 첫 프레임 시각부터 잰다
     const frame = (now) => {
       if (t0 === null) t0 = now;
       const p = Math.max(0, Math.min(1, (now - t0) / ms)); // 진행률 0~1
       const t = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2; // 천천히-빠르게-천천히
-      S.nodes.update(nodes.map((n) => ({ id: n.id, ...mixNode(n.kind, a.nodes[n.id] || "dim", b.nodes[n.id] || "dim", t) })));
-      S.edges.update(edges.map((id) => ({ id, ...mixEdge(a.edges[id] || "dim", b.edges[id] || "dim", t) })));
+      S.nodes.update(nodes.map((n) => ({ id: n.id, ...mixNode(n, nodeSt(n, a), nodeSt(n, b), t) })));
+      S.edges.update(edges.map((id) => ({ id, ...mixEdge(edgeSt(id, a), edgeSt(id, b), t) })));
       S.raf = p < 1 ? requestAnimationFrame(frame) : 0;
     };
     S.raf = requestAnimationFrame(frame);
@@ -1234,7 +1281,7 @@ main#demo-view {
   /* =======================================================================
    * 7. 피드백 (슬라이드 15) — data.js SLIDE_15
    * ======================================================================= */
-  // 피드백: 문제 카드 아래에 문단 → 교과서 쪽 줄 순서로 차례로 나타난다(간격은 CSS .fb-para)
+  // 피드백: 문제 카드 안 회색 상자에 문단 → 교과서 쪽 줄 순서로 차례로 나타난다(간격은 CSS .fb-para)
   //   data.js에 text(한 문단)가 있으면 그것을, paragraphs(소제목 문단들)가 있으면 그것을 쓴다.
   //   문단이 여러 개면 마지막 문단은 옅은 초록 상자. Backspace로 돌아왔을 때는 바로 다 보인다.
   function renderFeedback(anim) {
@@ -1242,22 +1289,24 @@ main#demo-view {
     const paras = (FB.paragraphs || (FB.text ? [FB.text] : [])).map((pa) => (typeof pa === "string" ? { label: "", text: pa } : pa));
     const last = paras.length - 1;
     const pages = (PAGES.pages || []).map((pg) => rich(FB.pageText, { 쪽: pg })).join(esc(FB.pageJoin ?? " · "));
+    // 피드백 회색 상자는 문제 카드 안, 선지·확신도 바로 아래에 둔다
     el("demo-fb").innerHTML = `<div class="fb-cols">
-        <article class="dq show graded fb-q">${questionHtml(p, { graded: true, mark: FB.mark })}</article>
-        <section class="fb-panel">
-          <p class="fb-h">${rich(FB.panelTitle)}</p>
-          <div class="fb-body">
-            ${paras
-              .map(
-                (pa, i) => `<div class="fb-para${i === last && paras.length > 1 ? " key" : ""}" style="--i:${i}">
-                  ${pa.label ? `<p class="fb-label"><span class="n">${i + 1}</span>${rich(pa.label)}</p>` : ""}
-                  <p class="fb-text">${rich(pa.text)}</p>
-                </div>`
-              )
-              .join("")}
-            <p class="fb-pages" style="--i:${paras.length}"><span>${rich(FB.pagesLabel)}</span>${pages}</p>
-          </div>
-        </section>
+        <article class="dq show graded fb-q">${questionHtml(p, { graded: true, mark: FB.mark })}
+          <section class="fb-box">
+            <p class="fb-h">${rich(FB.panelTitle)}</p>
+            <div class="fb-body">
+              ${paras
+                .map(
+                  (pa, i) => `<div class="fb-para${i === last && paras.length > 1 ? " key" : ""}" style="--i:${i}">
+                    ${pa.label ? `<p class="fb-label"><span class="n">${i + 1}</span>${rich(pa.label)}</p>` : ""}
+                    <p class="fb-text">${rich(pa.text)}</p>
+                  </div>`
+                )
+                .join("")}
+              <p class="fb-pages" style="--i:${paras.length}"><span>${rich(FB.pagesLabel)}</span>${pages}</p>
+            </div>
+          </section>
+        </article>
       </div>`;
     const body = el("demo-fb").querySelector(".fb-body");
     if (anim) {
@@ -1289,7 +1338,7 @@ main#demo-view {
     g_concept: [["#demo-graph", 0], ["#demo-llm", 900]],
     g_pages: [["#demo-graph", 0], ["#demo-direct", 900]],
     send: [["#demo-llm", 0]],
-    feedback: [["#demo-fb .fb-panel", 0, "start"]],
+    feedback: [["#demo-fb .fb-box", 0]],
   };
 
   function focusStep(i, anim) {
