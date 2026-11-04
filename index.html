@@ -934,7 +934,7 @@ main#demo-view {
   }
 
   // 노드 모양 (size = 반지름, ink = 원 안 글자 색)
-  //   faint: 주변 노드(작고, 종류 색으로 아주 연하게) · dim: 찾아가는 노드인데 아직(회색)
+  //   faint: 주변 노드(작고, 종류 색으로 아주 연하게) · dim: 찾아가는 노드인데 아직(주변 노드처럼 아주 연한 종류 색)
   //   lit: 지금 찾음(진한 테두리, 조금 큼) · done: 지나옴(종류 색)
   function nodeStyle(n, st) {
     const c = KIND[n.kind] || KIND.concept;
@@ -943,7 +943,8 @@ main#demo-view {
     }
     const r = RADIUS[n.kind] || 44;
     if (st === "dim") {
-      return { size: r, color: { background: "#f4f4f5", border: "#d4d4d8" }, borderWidth: 1.5, font: capFont("#b4b4bb", 16), ink: "#a1a1aa", shadow: false };
+      // 아직 안 찾은 노드: 주변 노드와 같은 아주 연한 종류 색(오개념 빨강 · 정개념 파랑 · 학습 자료 초록)
+      return { size: r, color: { background: c.faintBg, border: c.faintBorder }, borderWidth: 1.5, font: capFont("#b4b4bb", 16), ink: "#a1a1aa", shadow: false };
     }
     const lit = st === "lit";
     return {
@@ -1194,8 +1195,9 @@ main#demo-view {
   /* =======================================================================
    * 6. LLM 입력 상자 (슬라이드 9~14) — data.js SLIDE_9.llmInput, SLIDE_13.pages
    * ======================================================================= */
-  // 칸이 채워지는 슬라이드: 문항(item) 9 · 오개념(card) 11 · 정개념(concept) 12
-  const FILL_AT = () => ({ item: AT.search, card: AT.g_card, concept: AT.g_concept });
+  // 칸이 채워지는 슬라이드: 문항(item) 10 · 오개념(card) 11 · 정개념(concept) 12
+  //   (슬라이드 9에서는 모든 칸이 빈칸. 10에서 선지 노드가 켜진 뒤 문항 칸이 채워진다)
+  const FILL_AT = () => ({ item: AT.g_options, card: AT.g_card, concept: AT.g_concept });
 
   function buildLlm() {
     el("t-graph").innerHTML = rich(SEARCH.graphTitle);
@@ -1344,8 +1346,8 @@ main#demo-view {
     q2_grade: [["#demo-q1 .dopt.chosen", 0]],
     reduce: [["top", 0]],
     judge: [["#demo-judge", 200]],
-    search: [["top", 0], ["#demo-llm", 700]],
-    g_options: [["#demo-graph", 0]],
+    search: [["top", 0]],
+    g_options: [["#demo-graph", 0], ["#demo-llm", 900]],
     g_card: [["#demo-graph", 0], ["#demo-llm", 900]],
     g_concept: [["#demo-graph", 0], ["#demo-llm", 900]],
     g_pages: [["#demo-graph", 0], ["#demo-direct", 900]],
