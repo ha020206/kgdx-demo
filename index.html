@@ -33,9 +33,14 @@
   --right-bg: #f0fdf4;
   /* 그래프에서 지금 따라가는 길 */
   --trail: #f59e0b;
-  /* 엔트리 블록 색 */
-  --hat: #7ac143;
-  --var: #d26ad2;
+  /* 엔트리 블록 색 (시작 · 자료(변수) · 생김새 · 입력 칸) — -dark는 테두리·드롭다운 색 */
+  --hat: #45c043;
+  --hat-dark: #2f9e2f;
+  --var: #c94fd1;
+  --var-dark: #a336ad;
+  --looks: #ea4465;
+  --looks-dark: #c42f4f;
+  --field: #fff6c7;
   --decl: #e67e22;
   --ctrl: #f0a033;
   --fn: #6b5ce7;
@@ -125,51 +130,68 @@ main#demo-view {
 /* =========================================================================
  * 2. 엔트리 블록 코드 (문제 안 코드)
  * ========================================================================= */
-.blocks { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+/* 블록은 엔트리처럼 위아래로 붙여 쌓는다 */
+.blocks { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
 .blk {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 10px;
-  border-radius: 16px;
+  gap: 6px;
+  min-height: 30px;
+  padding: 3px 5px 3px 10px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 15px;
   color: #fff;
   font-size: 13px;
   font-weight: 600;
   line-height: 1.2;
   white-space: nowrap;
 }
-.blk.hat { background: var(--hat); }
-.blk.hat::before {
+/* 시작 블록: 왼쪽에 흰 동그라미 안 초록 ▶ */
+.blk.hat { padding: 3px 14px 3px 4px; background: var(--hat); border-color: var(--hat-dark); }
+.hat-ico { position: relative; flex: 0 0 auto; width: 22px; height: 22px; border-radius: 50%; background: #fff; }
+.hat-ico::after {
   content: "";
+  position: absolute;
+  left: 8px;
+  top: 6px;
   border-style: solid;
   border-width: 5px 0 5px 8px;
-  border-color: transparent transparent transparent #fff;
+  border-color: transparent transparent transparent var(--hat);
 }
-.blk.var { background: var(--var); }
+.blk.var { background: var(--var); border-color: var(--var-dark); }   /* 자료(변수): '정하기' */
+.blk.looks { background: var(--looks); border-color: var(--looks-dark); } /* 생김새: '말하기' */
 .blk.ctrl { background: var(--ctrl); }
 .blk.fn { background: var(--fn); }
 .blk.decl { background: var(--decl); }
 .blk.cmd { background: #888; }
-/* 블록 안 칩: (값) = 흰 칩, [이름] = 드롭다운 칩(▾), (… 칩 …) = 값 블록 */
+/* 블록 안 칩: (값) = 옅은 노란 입력 칸, [이름] = 드롭다운(▾), (… 칩 …) = 값 블록 */
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 1px 6px;
-  border-radius: 7px;
-  background: #fff;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: var(--field);
   color: #333;
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
 }
+.chip.dd { background: var(--var-dark); color: #fff; }
+.blk.looks > .chip.dd { background: var(--looks-dark); }
 .chip.dd::after {
   content: "";
   margin-left: 2px;
-  border: 3px solid transparent;
-  border-top-color: #777;
+  border: 3.5px solid transparent;
+  border-top-color: #fff;
   border-bottom-width: 0;
 }
-.chip.rep { padding: 2px 6px; border-radius: 10px; background: rgba(0, 0, 0, 0.16); color: #fff; }
+/* 값 블록 '([단어] 값)': 자료(변수) 색 */
+.chip.rep { padding: 2px 8px 2px 3px; border: 1px solid var(--var-dark); border-radius: 12px; background: var(--var); color: #fff; }
+.chip.rep .chip.dd { background: var(--var-dark); }
+/* 블록 끝 동그라미 아이콘: 자료(?) · 생김새 */
+.blk-ico { display: inline-grid; place-items: center; flex: 0 0 auto; width: 20px; height: 20px; border-radius: 50%; }
+.blk-ico.q { background: rgba(255, 255, 255, 0.4); color: var(--var-dark); font-size: 12px; font-weight: 800; }
+.blk-ico.lk { background: rgba(255, 255, 255, 0.3); }
 
 /* =========================================================================
  * 3. 문제 카드 (슬라이드 1~8, 15 왼쪽)
@@ -264,20 +286,6 @@ main#demo-view {
 .dq.graded .dbadge { opacity: 1; }
 .dbadge.wrong { color: var(--wrong-ink); }
 .dbadge.right { color: var(--right); }
-/* 고른 선지 아래 오개념 노드 글 (슬라이드 3·6에 펼쳐짐) */
-.dtag {
-  flex-basis: 100%;
-  max-height: 0;
-  margin-left: 22px;
-  overflow: hidden;
-  opacity: 0;
-  color: var(--wrong-ink);
-  font-size: 13px;
-  font-weight: 500;
-  transition: max-height 0.35s ease 0.1s, opacity 0.35s ease 0.1s, margin-top 0.35s ease 0.1s;
-}
-.dtag b { font-weight: 800; }
-.dq.graded .dopt.chosen .dtag { max-height: 64px; margin-top: 4px; opacity: 1; }
 
 /* --- 확신도 : "확신도" 제목 줄 + ○ 확실해요 · ○ 조금 확실해요 · ○ 잘 모르겠어요 --- */
 .dq-conf { margin-top: 12px; }
@@ -405,10 +413,15 @@ main#demo-view {
 .demo-page.enter { opacity: 0; transform: translateY(4px); background: #fff; }
 
 /* =========================================================================
- * 6. 피드백 (슬라이드 15) : 왼쪽 문제 카드 + 오른쪽 피드백 한 문단
+ * 6. 피드백 (슬라이드 15) : 위에 문제 카드, 바로 아래 피드백 한 문단
  * ========================================================================= */
-.fb-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 28px; align-items: start; }
-.fb-q .dtag { display: none; }
+.fb-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; max-width: 1040px; margin: 0 auto; }
+/* 피드백 화면의 문제 카드: 높이를 줄이려고 카드 안을 왼쪽(문제·코드) | 오른쪽(선지·확신도)으로 나눈다 */
+.fb-q { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); column-gap: 24px; align-items: start; }
+.fb-q > .dq-no { grid-column: 1 / -1; }
+.fb-q > .dfold { grid-column: 1; grid-row: 2 / span 2; }
+.fb-q > .dq-opts { grid-column: 2; grid-row: 2; }
+.fb-q > .dq-conf { grid-column: 2; grid-row: 3; margin-top: 6px; }
 .fb-panel { padding: 18px 20px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
 .fb-h { margin: 0 0 14px; color: #999; font-size: 13px; font-weight: 700; }
 /* 문단 → 문단 → 문단 → 교과서 쪽 줄 순서로 차례로 나타남(--i = 순서, 판정 상자와 같은 0.25초 간격) */
@@ -452,6 +465,8 @@ main#demo-view {
   main#demo-view { padding: 6px 16px 0; }
   .demo-stage { min-height: 0; }
   .demo-cols, .demo-search, .fb-cols { grid-template-columns: 1fr; gap: 14px; }
+  /* 휴대폰: 피드백 문제 카드도 위→아래 한 줄로 */
+  .fb-q { display: block; }
   #demo-q0.show.center { transform: none; }
   .dq { padding: 14px 12px; }
   .dq-stem { font-size: 16px; }
@@ -541,7 +556,7 @@ main#demo-view {
    * 이름표 바로 뒤의 을/를, 이/가, 은/는, 과/와, 으로/로 는 값의 받침에 맞춰 하나를 고른다.
    * 모르는 이름표는 {이름표} 그대로 둔다(화면에 보여서 오타를 찾기 쉽게). */
   const V = {};
-  const CIRCLED_DIGIT = { "①": "1", "②": "2", "③": "3", "④": "4", "⑤": "5" };
+  const CIRCLED_DIGIT = { "①": "1", "②": "2", "③": "3", "④": "4", "⑤": "5", "⑥": "6", "⑦": "7", "⑧": "8", "⑨": "9" };
   function lastSound(word) {
     for (const ch0 of [...String(word)].reverse()) {
       const ch = CIRCLED_DIGIT[ch0] || ch0;
@@ -641,7 +656,7 @@ main#demo-view {
   /* =======================================================================
    * 2. 공통 도구
    * ======================================================================= */
-  const CIRCLED = { 1: "①", 2: "②", 3: "③", 4: "④", 5: "⑤" };
+  const CIRCLED = { 1: "①", 2: "②", 3: "③", 4: "④", 5: "⑤", 6: "⑥", 7: "⑦", 8: "⑧", 9: "⑨" };
   const lines = (v) => (Array.isArray(v) ? v : String(v ?? "").split("\n"));
   const confLabel = (v) => (C.confidence.find((c) => String(c.value) === String(v)) || {}).label || "";
   const mcOf = (id) => MC[id] || { name: id, desc: "" };
@@ -730,9 +745,17 @@ main#demo-view {
     if (t.startsWith("함수 정의") || t.startsWith("함수 ")) return "fn";
     if (t.includes("반복") || t.startsWith("만일") || t.startsWith("아니면")) return "ctrl";
     if (t.startsWith("▤") || t.startsWith("◇")) return "decl";
-    if (/정하기|더하기|말하기|삭제|추가|항목/.test(t)) return "var";
+    if (/말하기/.test(t)) return "looks"; // 생김새
+    if (/정하기|더하기|삭제|추가|항목/.test(t)) return "var"; // 자료(변수·리스트)
     return "cmd";
   }
+
+  // 블록 끝 동그라미 아이콘 (엔트리: 자료 블록은 ?, 생김새 블록은 꽃 모양)
+  const BLOCK_ICON = {
+    var: '<span class="blk-ico q">?</span>',
+    looks:
+      '<span class="blk-ico lk"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><circle cx="6" cy="3.5" r="2.4" fill="#fff"/><circle cx="3.4" cy="7.9" r="2.4" fill="#fff"/><circle cx="8.6" cy="7.9" r="2.4" fill="#fff"/></svg></span>',
+  };
 
   function renderBlocks(code) {
     return lines(code)
@@ -740,7 +763,7 @@ main#demo-view {
       .map((line) => {
         const kind = blockKind(line);
         const pad = Math.min((line.match(/^\s*/) || [""])[0].length, 16);
-        const inner = kind === "hat" ? esc(line.trim()) : chipify(line.trim());
+        const inner = kind === "hat" ? `<span class="hat-ico"></span>${esc(line.trim())}` : chipify(line.trim()) + (BLOCK_ICON[kind] || "");
         return `<div class="blk ${kind}" style="margin-left:${pad * 7}px">${inner}</div>`;
       })
       .join("");
@@ -758,10 +781,9 @@ main#demo-view {
         let badge = "";
         if (chosen && !correct) badge = `<span class="dbadge wrong">${rich(GRADE.wrongBadge)}</span>`;
         else if (correct) badge = `<span class="dbadge right${chosen ? " mine" : ""}">${rich(GRADE.rightBadge)}</span>`;
-        const mc = chosen && o.mc ? mcOf(o.mc) : null;
-        const tag = mc ? `<span class="dtag">${rich(GRADE.misconceptionTag, { 이름: mc.name, 설명: mc.desc })}</span>` : "";
+        // 채점 때는 정답·오답만 표시한다(어떤 오개념인지는 판정 상자·그래프에서 처음 나온다)
         // .dfold 바로 안쪽 div에는 여백이 없어야 접을 때 높이가 0까지 줄어든다
-        return `<div class="dfold${chosen ? " keep" : ""}"><div><div class="${cls}"><span class="dradio"></span><span class="dopt-text">${esc(o.key)}) ${esc(o.text)}</span>${badge}${tag}</div></div></div>`;
+        return `<div class="dfold${chosen ? " keep" : ""}"><div><div class="${cls}"><span class="dradio"></span><span class="dopt-text">${esc(o.key)}) ${esc(o.text)}</span>${badge}</div></div></div>`;
       })
       .join("");
   }
@@ -1212,11 +1234,12 @@ main#demo-view {
   /* =======================================================================
    * 7. 피드백 (슬라이드 15) — data.js SLIDE_15
    * ======================================================================= */
-  // 피드백: 소제목이 붙은 문단들 → 교과서 쪽 줄 순서로 차례로 나타난다(간격은 CSS .fb-para)
-  //   마지막 문단(정개념)은 옅은 초록 상자. Backspace로 돌아왔을 때는 바로 다 보인다.
+  // 피드백: 문제 카드 아래에 문단 → 교과서 쪽 줄 순서로 차례로 나타난다(간격은 CSS .fb-para)
+  //   data.js에 text(한 문단)가 있으면 그것을, paragraphs(소제목 문단들)가 있으면 그것을 쓴다.
+  //   문단이 여러 개면 마지막 문단은 옅은 초록 상자. Backspace로 돌아왔을 때는 바로 다 보인다.
   function renderFeedback(anim) {
     const p = problemNo(FB.problem || 2);
-    const paras = (FB.paragraphs || []).map((pa) => (typeof pa === "string" ? { label: "", text: pa } : pa));
+    const paras = (FB.paragraphs || (FB.text ? [FB.text] : [])).map((pa) => (typeof pa === "string" ? { label: "", text: pa } : pa));
     const last = paras.length - 1;
     const pages = (PAGES.pages || []).map((pg) => rich(FB.pageText, { 쪽: pg })).join(esc(FB.pageJoin ?? " · "));
     el("demo-fb").innerHTML = `<div class="fb-cols">
